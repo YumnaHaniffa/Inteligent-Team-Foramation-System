@@ -14,7 +14,7 @@ import java.io.IOException;
 public class FileService implements FileServiceInt {
 
     private final PersonalityClassifierInt classifier = new PersonalityClassifier();  // the personality can only be assigned once
-    private static final int fieldCount = 7; // only data from 7 fields are needed, the variable should be used across all objects
+    private static final int fieldCount = 8; // only data from 7 fields are needed, the variable should be used across all objects
 // read lin by line
     //
     @Override
