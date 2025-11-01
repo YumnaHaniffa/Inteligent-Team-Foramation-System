@@ -2,6 +2,7 @@ package com.gameclub.team.service;
 
 import com.gameclub.team.model.Participant;
 
+import javax.sound.midi.InvalidMidiDataException;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +13,14 @@ import java.io.IOException;
 
 public class FileService implements FileServiceInt {
 
+    private final PersonalityClassifierInt classifier = new PersonalityClassifier();  // the personality can only be assigned once
+    private static final int fieldCount = 7; // only data from 7 fields are needed, the variable should be used across all objects
+// read lin by line
+    //
     @Override
     public List<Participant> loadParticipants(String filepath) {
         List<Participant> participants = new ArrayList<>();
+        int lineNumber = 0;
 
         //ensure the file is closed soon after reading
         try (BufferedReader br = new BufferedReader(new FileReader(filepath))) {
@@ -25,15 +31,48 @@ public class FileService implements FileServiceInt {
 
             //Read each line
             while ((line = br.readLine()) != null) {
+                lineNumber++;
                 String[] values = line.split(",");
 
-                //Extract field from CSV columns
-                int playerId = Integer.parseInt(values[0].trim());
+            //check for missing fields -> how does it have to be handled
+                if (values.length < fieldCount) {
+                    System.out.println("Structural Error.Missing data fields");
+                    continue;
+                }
+                //check if skillLevel and personalityScore are numbers
+                int skillLevel;
+                int personalityScore;
+                String personalityType;
+
+
+                try{
+                    skillLevel = Integer.parseInt(values[4].trim());
+                    personalityScore = Integer.parseInt(values[6].trim());
+                } catch (NumberFormatException e) {
+                    System.out.println("Format error. SkillLevel or Score is not a number");
+                    continue;
+                }
+
+                //Range check
+                try{
+                    if(skillLevel < 1 || skillLevel > 10) {
+                        throw new InvalidMidiDataException("Skill Level("+skillLevel+") is outside the range 1-10 range");
+                                            }
+                    if (personalityScore < 50 || personalityScore > 100) {
+                        throw new InvalidMidiDataException("PersonalityScore"+personalityScore+" is outside the 50-100 range");
+
+                    }
+                } catch (InvalidMidiDataException e) {
+                    System.err.println("Constraint Error"+ e.getMessage());
+                }
+
+                //Extract remaining field from CSV columns
+                String playerId = values[0].trim();
                 String preferredGame = values[3].trim();
-                int skillLevel = Integer.parseInt(values[4].trim());
                 String preferredRole = values[5].trim();
-                int personalityScore = Integer.parseInt(values[6].trim());
-                String personalityType = values[7].trim();
+
+                //Call the personalityClassifier to get the type
+                personalityType = classifier.classify(personalityScore);
 
                 //Create Participant object using extracted data
                 Participant participant = new Participant(playerId, preferredGame, skillLevel, preferredRole, personalityScore, personalityType);

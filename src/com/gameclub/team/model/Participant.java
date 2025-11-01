@@ -2,17 +2,17 @@ package com.gameclub.team.model;
 
 public class Participant {
 
-    private int playerId;
+    private String playerId;
     private String preferredGame;
     private int skillLevel;
     private String preferredRole;
     private int personalityScore;
-    private String personalityType;
+    private String personalityType;      //PersonalityClassifier Datatype
 
     public Participant() {
     }
 
-    public Participant(int playerId, String preferredGame,int skillLevel, String preferredRole, int personalityScore, String personalityType) {
+    public Participant(String playerId, String preferredGame,int skillLevel, String preferredRole, int personalityScore, String personalityType) {
         this.playerId = playerId;
         this.preferredGame = preferredGame;
         this.preferredRole = preferredRole;
@@ -21,7 +21,7 @@ public class Participant {
         this.skillLevel = skillLevel;
     }
 
-    public int getPlayerId() {
+    public String getPlayerId() {
         return playerId;
     }
 
