@@ -1,14 +1,11 @@
 package com.gameclub.team.service;
 
-public class PersonalityClassifier implements PersonalityClassifierInt{
+public class PersonalityClassifier{
 
     //Check for Leader -> 90-100
             // Balanced -> 70-89
             // Thinker -> 50-69
-    // else -> ???????????
-
-
-    @Override
+    // else -> ????????
     public String classify(int score) {
         if (score >= 90 && score <= 100) {
             return "Leader";
