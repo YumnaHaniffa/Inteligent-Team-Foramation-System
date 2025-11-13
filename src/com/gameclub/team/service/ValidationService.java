@@ -1,8 +1,12 @@
 package com.gameclub.team.service;
 
-import com.gameclub.team.controller.TeamFormationInt;
+import com.gameclub.team.model.Participant;
+import com.gameclub.team.model.Team;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.List;
 
 //Exception Handling and Validating team formation
 public class ValidationService implements ValidationServiceInt {
@@ -58,7 +62,45 @@ public class ValidationService implements ValidationServiceInt {
         }
         return score;
     }
-    //
+    //Team formation constraint handling
+
+    //4. Check for the constraints
+    // The algorithm checks a constraint, and if it fails, it fixes the failure, and then checks all constraints again until every rule is met.
+    //a. Check the cap for each game -
+    //initialize the cap per game
+    // iterate  through each team and count how many players prefer each game type
+    // algorithm compares the count for the most common game against the defined cap
+    //IF FAILS ->
+
+    int gameMax = 2;
+    public List<Team> checkGameCap(List<Team> teams,int gameMax){
+
+        //create list to store teams that failed the validation
+        List<Team> failedTeams = new ArrayList<>();
+
+        //Create a map to store count of players for each game
+        for (Team team : teams) {
+            HashMap<String, Integer> gameCountMap = new HashMap<>();
+
+            //count the players to each game
+            for(Participant player : team.getMembers()){
+                String gameName = player.getPreferredGame();
+                gameCountMap.put(gameName, gameCountMap.getOrDefault(gameName, 0) + 1);
+            }
+
+            //Compare the count for the most common game against the defined cap
+            for(Integer gameCount : gameCountMap.values()){
+                if(gameCount > gameMax){
+                    failedTeams.add(team); // can add information on how each team violates the rule
+                    break; //move to the next team
+
+                }
+
+            }
+        }
+        return failedTeams;
+    }
+
 
 
 }

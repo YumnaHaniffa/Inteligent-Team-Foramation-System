@@ -14,7 +14,7 @@ import java.util.List;
 
 //Algorithm
 //1. The composite score = personality score +skill level is calculated for each participant -> done in Participant class
-public class TeamBuilder {
+public class TeamBuilder implements TeamFormationInt {
 
 //2. The participants will be sorted based on the composite score
     public List<Participant> sortParticipants(List<Participant> listOfParticipants) {
@@ -73,13 +73,6 @@ public class TeamBuilder {
         return teams;
 
     }
-//4. Check for the constraints
-// The algorithm checks a constraint, and if it fails, it fixes the failure, and then checks all constraints again until every rule is met.
-    //a. Check the cap for each game -
-    //initialize the cap per game
-    // iterate  through each team and count how many players prefer each game type
-    // algorithm compares the count for the most common game against the defined cap
-    //IF FAILS ->
 
 
 }
