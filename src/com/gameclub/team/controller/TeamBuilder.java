@@ -26,8 +26,6 @@ public class TeamBuilder implements TeamFormationInt {
 //3. The sorted participants  will be distributed using the snake-draft
 
     //a. initializes the required number of empty teams based on number of participants and team size
-    int numTeams;
-
     public List<Team> formTeams(List<Participant> listOfParticipants,  int numTeams) {
 
         //Initialize the teams list
@@ -73,6 +71,9 @@ public class TeamBuilder implements TeamFormationInt {
         return teams;
 
     }
+
+
+
 
 
 }

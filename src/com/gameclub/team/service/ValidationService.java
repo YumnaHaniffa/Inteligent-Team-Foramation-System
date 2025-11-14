@@ -3,10 +3,7 @@ package com.gameclub.team.service;
 import com.gameclub.team.model.Participant;
 import com.gameclub.team.model.Team;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.InputMismatchException;
-import java.util.List;
+import java.util.*;
 
 //Exception Handling and Validating team formation
 public class ValidationService implements ValidationServiceInt {
@@ -66,32 +63,38 @@ public class ValidationService implements ValidationServiceInt {
 
     //4. Check for the constraints
     // The algorithm checks a constraint, and if it fails, it fixes the failure, and then checks all constraints again until every rule is met.
-    //a. Check the cap for each game -
-    //initialize the cap per game
-    // iterate  through each team and count how many players prefer each game type
-    // algorithm compares the count for the most common game against the defined cap
-    //IF FAILS ->
+    //-> IMPORTANT -> games that exceed the count by more than one
+    //-> more than one game group exceed th cap
 
-    int gameMax = 2;
-    public List<Team> checkGameCap(List<Team> teams,int gameMax){
 
-        //create list to store teams that failed the validation
-        List<Team> failedTeams = new ArrayList<>();
+    public List<Map<String, Object>> checkGameCap(List<Team> teams, int gameMax) {
+
+        //create list to store teams that failed the validation with the information
+        List<Map<String,Object>> failedTeams = new ArrayList<>();
+
 
         //Create a map to store count of players for each game
         for (Team team : teams) {
-            HashMap<String, Integer> gameCountMap = new HashMap<>();
+            HashMap<String, Integer> gameCountMap = new HashMap<>(); // how many players for each game in each team
 
-            //count the players to each game
+            //count the players to each game of the current team
             for(Participant player : team.getMembers()){
                 String gameName = player.getPreferredGame();
                 gameCountMap.put(gameName, gameCountMap.getOrDefault(gameName, 0) + 1);
             }
 
             //Compare the count for the most common game against the defined cap
-            for(Integer gameCount : gameCountMap.values()){
-                if(gameCount > gameMax){
-                    failedTeams.add(team); // can add information on how each team violates the rule
+            // consider other limitations
+            for(Map.Entry<String, Integer> entry : gameCountMap.entrySet()){
+                String gameName = entry.getKey();
+                int count = entry.getValue();
+
+                if(count > gameMax){
+                    Map<String,Object> failure = new HashMap<>();
+                    failure.put("Team",team);
+                    failure.put("gameName",gameName);
+                    failedTeams.add(failure); // can add information on how each team violates the rule
+
                     break; //move to the next team
 
                 }
@@ -100,6 +103,19 @@ public class ValidationService implements ValidationServiceInt {
         }
         return failedTeams;
     }
+    //IF FAILS -> what happens to the stored teams
+    //1. Identify the player to be removed -> this is the player with the lowest rank(to reduce the impact of avg skill) in the falling team
+
+    public  void fixGameCapFailure(List<Map<String,Object>> failedTeams,List<Team> teams){
+        for(Map<String,Object> failedT : failedTeams){
+            Team failedTeam  = (Team)failedT.get("team"); // get the current team from the filed teams
+            String violatingGame = (String) failedT.get("violatingGame");
+
+
+        }
+    }
+
+
 
 
 

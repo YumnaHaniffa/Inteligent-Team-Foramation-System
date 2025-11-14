@@ -14,8 +14,11 @@ public class Participant {
 
     private int compositeScore;
 
+    public void setCompositeScore(int compositeScore) {
+        this.compositeScore = compositeScore;
+    }
 
-    public Participant(String name, String preferredGame, int skillLevel, String preferredRole,String personalityType, int compositeScore) {
+    public Participant(String name, String preferredGame, int skillLevel, String preferredRole, String personalityType, int compositeScore) {
 
         this.name = name;
         this.preferredGame = preferredGame;
