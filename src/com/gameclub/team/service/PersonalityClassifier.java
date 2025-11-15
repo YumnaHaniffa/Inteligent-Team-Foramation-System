@@ -24,7 +24,25 @@ public class PersonalityClassifier{
         }
     }
     //dummy composite score calculation for core logic
-    public int calculateCompositeScore(Participant p) {
-        return p.getSkillLevel() + p.getPersonalityScore();
-    }
+//    public int calculateCompositeScore(Participant p) {
+//        return p.getSkillLevel() + p.getPersonalityScore();
+//    }
+
+//    //get the personality count for team
+//    public int getPersonalityCount(String personality){
+//        int personalityCount = 0;
+//
+//        if(personality == null){
+//            return 0;
+//        }
+//        for(Participant p : members){
+//            if(p.getPersonalityType()!= null && p.getPersonalityType().equalsIgnoreCase(personality)){
+//                personalityCount++;
+//
+//            }
+//
+//        }
+//        return personalityCount;
+//    }
+
 }

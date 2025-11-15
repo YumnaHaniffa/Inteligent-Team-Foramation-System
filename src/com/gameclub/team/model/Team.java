@@ -7,9 +7,17 @@ public class Team {
 
 
     private int teamSize;
-    private String teamId;
+    private String Name;
+
+    public String getTeamName() {
+        return Name;
+    }
+    public void setTeamName(String teamName) {
+        Name = teamName;
+    }
 
     //participant list
+    //INDICATION OF AGGREGATION - the team has participants but the participants can exist without the team
     private List<Participant> members;
 
     public Team() {
@@ -28,10 +36,15 @@ public class Team {
         members.add(p);
 
     }
+    //remove player
+    public boolean removePlayer(Participant p) {
+        return members.remove(p);
+    }
     //get the participants
     public List<Participant> getMembers() {
         return members;
     }
+
     public Team getTeam() {
         return this;
     }
@@ -39,6 +52,41 @@ public class Team {
         Participant p = new Participant();
         members.add(p);
     }
+    //get the personality count for team
+    public int getPersonalityCount(String personality){
+        int personalityCount = 0;
+
+        if(personality == null){
+            return 0;
+        }
+        for(Participant p : members){
+            if(p.getPersonalityType()!= null && p.getPersonalityType().equalsIgnoreCase(personality)){
+                personalityCount++;
+
+            }
+
+        }
+        return personalityCount;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //Implement the method for lowest ranked player
     public Participant lowestRankedPlayerByGame(String game){
@@ -75,7 +123,7 @@ public class Team {
                     //update the minimum difference
                     min_diff = currentDifference;
 
-                    //set this palyer as the new best candidate
+                    //set this player as the new best candidate
                     bestCandidate = player;
                 }
             }

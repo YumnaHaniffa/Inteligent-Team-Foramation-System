@@ -74,17 +74,9 @@ public class TeamBuilder implements TeamFormationInt {
 
 
 
-
-
 }
 
 
-
-    //b. Check for role diversity -
-        //initialize the minimum unique roles per team
-        // iterate  through each team and count how many unique roles
-        // compares the count against the minimum requirement
-    //IF FAILS ->
 
     //c. Check for skill balance  - ensure the above changes  haven't made the overall skill imbalanced
     // every final team, calculate the average skill score

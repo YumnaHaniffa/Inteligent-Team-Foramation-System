@@ -4,6 +4,7 @@ import com.gameclub.team.model.Participant;
 import com.gameclub.team.model.Team;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 //Exception Handling and Validating team formation
 public class ValidationService implements ValidationServiceInt {
@@ -111,9 +112,113 @@ public class ValidationService implements ValidationServiceInt {
             Team failedTeam  = (Team)failedT.get("team"); // get the current team from the filed teams
             String violatingGame = (String) failedT.get("violatingGame");
 
+            //find the suitable player to be removed
+            Participant playerToRemove = failedTeam.lowestRankedPlayerByGame(violatingGame);
+
+            //Identify the target player to be swapped
+            Participant playerToSwap = null;
+            Team swapTeam = null;
+            for(Team Passedteam : teams){
+                if (!Passedteam.equals(failedTeam)) {
+                    Participant candidate =  Passedteam.FindBestSwapPlayer(violatingGame, playerToSwap.getCompositeScore());
+                    //to ensure the swap doesn't violate the cap on the passed teams
+                    if(candidate != null){
+                        playerToSwap = candidate;
+                        swapTeam = Passedteam;
+                        break;
+                    }
+                }
+
+            }
+            //Perform Swap
+            if(playerToSwap != null){
+                failedTeams.remove(playerToRemove);
+                failedTeam.addPlayers(playerToSwap);
+
+                swapTeam.removePlayer(playerToSwap);
+                swapTeam.addPlayers(playerToRemove);
+
+//                //debugging statement
+//                System.out.println(
+//                        "SWAP: " + playerToRemove.getName() + " (" + violatingGame +
+//                                ") swapped from " + failedTeam.getTeamName() +
+//                                " with " + playerToSwap.getName() + " (" + playerToSwap.getPreferredGame() +
+//                                ") from " + swapTeam.getTeamName()
+//                );
+
+            } else {
+                // No suitable swap found
+                System.err.println(
+                        "CRITICAL: Could not fix Game Cap failure on team " +
+                                failedTeam.getTeamName()
+                );
+
+
+            }
 
         }
     }
+
+    //Check PersonalityMix
+    public List<Team> checkPersonalityMix(List<Team> teams) {
+
+        //store teams that fail in personality mix
+        List<Team> personaFailedTeams =  new ArrayList<>();
+
+        //count how many unique personalities in each time
+        for  (Team team : teams) {
+            int leaderCount = team.getPersonalityCount("Leader");
+            int thinkerCount = team.getPersonalityCount("Thinker");
+
+            String failureType = null; //
+            //critical failure
+            if(leaderCount == 0)  {
+                failureType = "No_leaders";
+            }
+            else if(leaderCount > 1)  {
+                failureType = "too_many_leaders";
+            }
+            else if(thinkerCount == 0 || thinkerCount > 2)  {
+                failureType = "imbalance_thinker";
+
+            }
+            if(failureType != null) {
+                personaFailedTeams.add(team);
+            }
+
+        }
+        return personaFailedTeams;
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+    //b. Check for role diversity -
+    //initialize the minimum unique roles per team
+    // iterate  through each team and count how many unique roles
+    // compares the count against the minimum requirement
+    //IF FAILS ->
+
+//    public  List<Map<String, Object>> checkSkillBalance(List<Team> teams, double skillThreshold) {
+//        //Calculate the average skill score  for every final team
+//        List<Double> averageSkills = new ArrayList<>();
+//
+//        for (Team team : teams) {
+//            int totalSkill = 0;
+//            for (Participant player : team.getMembers()) {
+//                totalSkill = totalSkill + player.getSkillLevel();
+//            }
+//        }
+//
+//    }
 
 
 

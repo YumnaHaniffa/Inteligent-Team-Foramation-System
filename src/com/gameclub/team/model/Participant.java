@@ -1,5 +1,8 @@
 package com.gameclub.team.model;
 
+import java.util.List;
+import java.util.Objects;
+
 //Represents an individual member
 public class Participant {
 
@@ -41,6 +44,8 @@ public class Participant {
 //        this.personalityType = personalityType;
 //        this.skillLevel = skillLevel;
 //    }
+
+
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
     }
@@ -110,6 +115,17 @@ public class Participant {
         return getSkillLevel() + getPersonalityScore();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if(!(o instanceof Participant)) return false;
+        Participant p = (Participant) o;
+        return this.playerId.equals(p.playerId);
+    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(playerId);
+    }
 
     @Override
     public String toString() {
