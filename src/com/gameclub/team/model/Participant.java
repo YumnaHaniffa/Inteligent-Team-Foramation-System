@@ -14,7 +14,6 @@ public class Participant {
     private String preferredRole;
     private int personalityScore;
     private String personalityType;      //PersonalityClassifier Datatype
-
     private int compositeScore;
 
     public void setCompositeScore(int compositeScore) {
@@ -127,8 +126,16 @@ public class Participant {
         return Objects.hash(playerId);
     }
 
+
     @Override
     public String toString() {
-        return"Participant [playerId=" + playerId + ", preferredGame=" + preferredGame + ", preferredRole=" + preferredRole + ", personalityScore=" + personalityScore;
+        return "--- PARTICIPANT ---\n" +
+                "Name: " + name + "\n" +
+                "Skill Level (1-10): " + skillLevel + "\n" +
+                "Game Interest: " + preferredGame + "\n" +
+                "Preferred Role: " + preferredRole + "\n" +
+                "Personality Type: " + personalityType + " (Mix Constraint Input)\n" +
+                "---------------------------------";
     }
-}
+    }
+
