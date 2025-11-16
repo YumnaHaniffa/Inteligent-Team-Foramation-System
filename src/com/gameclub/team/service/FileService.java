@@ -25,11 +25,7 @@ public class FileService implements FileServiceInt {
     public List<Participant> readAllParticipants(){
         List<Participant> participants = new ArrayList<>();
 
-        //add the participant objects to a list
-        participants.add(new Participant("Alex","Valorant", 10, "Defender", "Leader", 19));
-        participants.add(new Participant("Ben", "Dota",9,"Attacker", "Balanced", 17));
-        participants.add(new Participant("Chris", "FIFA",8, "Midfielder", "Thinker", 15));
-        participants.add(new Participant("David", "Valorant",7,  "Defender", "Balanced", 15));
+
 
         return participants;
 

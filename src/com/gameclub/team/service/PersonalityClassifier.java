@@ -8,27 +8,22 @@ public class PersonalityClassifier{
             // Balanced -> 70-89
             // Thinker -> 50-69
     // else -> ????????
-    public String classify(int score) {
-        if (score >= 90 && score <= 100) {
+    public String classify(int normalizedScore) {
+        if (normalizedScore >= 90) {
             return "Leader";
         }
-        else if (score >= 70 && score <= 89) {
+        else if (normalizedScore >= 70) {
             return "Balanced";
         }
-        else if (score >= 50 && score <= 69) {
+        else if (normalizedScore >= 50) {
             return "Thinker";
         }
-        else {
-            return "null";
+        else{
+            throw new IllegalArgumentException("Invalid  personality score: " + normalizedScore);
 
         }
+
     }
-
-
-    //dummy composite score calculation for core logic
-//    public int calculateCompositeScore(Participant p) {
-//        return p.getSkillLevel() + p.getPersonalityScore();
-//    }
 
 //    //get the personality count for team
 //    public int getPersonalityCount(String personality){

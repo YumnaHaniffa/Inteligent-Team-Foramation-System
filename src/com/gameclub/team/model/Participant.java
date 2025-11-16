@@ -1,5 +1,7 @@
 package com.gameclub.team.model;
 
+import com.gameclub.team.service.PersonalityClassifier;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -8,41 +10,45 @@ public class Participant {
 
     private String playerId;
     private String name;
-    private String emailMail;
+    private String email;
+
     private String preferredGame;
     private int skillLevel; //-> how does the survey data provides this
     private String preferredRole;
+
+    //Foe each question the rating is taken
+    private List<Integer> persona_rating;
     private int personalityScore;
     private String personalityType;      //PersonalityClassifier Datatype
+
+
     private int compositeScore;
 
-    public void setCompositeScore(int compositeScore) {
-        this.compositeScore = compositeScore;
-    }
 
-    public Participant(String name, String preferredGame, int skillLevel, String preferredRole, String personalityType, int compositeScore) {
-
+    public Participant(String playerId, String name, String email, String preferredGame, int skillLevel, String preferredRole, List<Integer> persona_rating) {
+        this.playerId = playerId;
         this.name = name;
+        this.email = email;
+
         this.preferredGame = preferredGame;
         this.skillLevel = skillLevel;
         this.preferredRole = preferredRole;
-        //this.personalityScore = personalityScore;
-        this.personalityType = personalityType;
-        this.compositeScore = compositeScore;
+
+        this.persona_rating = persona_rating;
+        this.personalityScore = calculatePersonalityScore();
+
+
+        //assign personality using personality Classifier class
+        // COMPOSITION//
+        PersonalityClassifier classifier = new PersonalityClassifier();
+        this.personalityType = classifier.classify(personalityScore);
+
+        this.compositeScore = calculateCompositeScore();
+
 
     }
+    public Participant(String playerId, String name, String email, String preferredGame, int skillLevel,String role ,String preferredRole) {}
 
-    public Participant() {
-    }
-
-//    public Participant(String playerId, String preferredGame,int skillLevel, String preferredRole, int personalityScore, String personalityType) {
-//        this.playerId = playerId;
-//        this.preferredGame = preferredGame;
-//        this.preferredRole = preferredRole;
-//        this.personalityScore = personalityScore;
-//        this.personalityType = personalityType;
-//        this.skillLevel = skillLevel;
-//    }
 
 
     public void setPlayerId(String playerId) {
@@ -58,11 +64,11 @@ public class Participant {
     }
 
     public String getEmailMail() {
-        return emailMail;
+        return email;
     }
 
     public void setEmailMail(String emailMail) {
-        this.emailMail = emailMail;
+        this.email = emailMail;
     }
 
 
@@ -110,8 +116,28 @@ public class Participant {
         skillLevel = SkillLevel;
     }
 
+
+    public void setCompositeScore(int compositeScore) {
+        this.compositeScore = compositeScore;
+    }
+
+
     public int getCompositeScore() {
         return getSkillLevel() + getPersonalityScore();
+    }
+
+    public int calculatePersonalityScore() {
+        int sum = 0;
+        for (int rating : persona_rating) {
+            sum += rating;
+
+        }
+        return sum;
+
+    }
+
+    public int calculateCompositeScore() {
+        return this.skillLevel + this.personalityScore;
     }
 
     @Override
