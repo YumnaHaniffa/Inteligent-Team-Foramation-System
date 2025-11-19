@@ -36,7 +36,7 @@ public class TeamBuilder implements TeamFormationInt {
         Map<Integer,Integer> teamCounts = new HashMap<>();
         //initialize the empty team objects
         for (int j = 0; j < numberOfTeams; j++) {
-            teams.add(new Team()); //Initialize each team
+            teams.add(new Team("Team" +(j+1))); //Initialize each team
             teamCounts.put(j,0);   //Initialize team count
         }
 

@@ -1,5 +1,6 @@
 package com.gameclub.team.model;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 //Represents a collection of members
@@ -15,7 +16,6 @@ public class Team {
     //Default initialization
     public Team() {
         this.members = new ArrayList<>(); // what creating a team object a list will be created to add the members
-        this.Name = "Team";
     }
 
     //with name
@@ -123,6 +123,18 @@ public class Team {
 
         }
         return personalityCount;
+    }
+
+    public int getTotalSkill(){
+        return members.stream().mapToInt(Participant::getSkillLevel).sum();
+    }
+
+    public Participant getHighestHighestSkilledPlayer(){
+        return members.stream().max(Comparator.comparing(Participant::getSkillLevel)).orElse(null);
+    }
+
+    public Participant  getLowestHighestSkilledPlayer (){
+        return members.stream().min(Comparator.comparing(Participant::getSkillLevel)).orElse(null);
     }
 
 
