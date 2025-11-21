@@ -5,6 +5,7 @@ import com.gameclub.team.model.Team;
 
 import javax.xml.validation.Validator;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TeamValidator implements TeamValidatorInt {
 
@@ -396,7 +397,6 @@ public class TeamValidator implements TeamValidatorInt {
             }
             if (uniqueRoles < requiredRoles) {
                 Map<String, Object> failure = new HashMap<>();
-                failure.put("team", team);
                 failure.put("teamName", team.getTeamName());
                 failure.put("uniqueRoles", uniqueRoles);
                 failure.put("requiredRoles", requiredRoles);
@@ -418,6 +418,84 @@ public class TeamValidator implements TeamValidatorInt {
 
         if (!failedTeams.isEmpty()) {
             System.out.println("No role diversity issues detected.");
+            return;
+        }
+        for (Map<String,Object> failedT : failedTeams) {
+            Team failing_team = (Team) failedT.get("team");
+            int requiredRole =  (Integer) failedT.get("requiredRole");
+            int current = (Integer) failedT.get("uniqueRoles");
+
+            //The existing role set
+            Set<String> currentRoles = new HashSet<>();
+            for (Participant player : failing_team.getMembers()) {
+                currentRoles.add(player.getPreferredRole());
+            }
+
+            //Identify missing roles
+            Set<String> missingRoles = new HashSet<>();
+            List<String> allPossibleRoles = Arrays.asList("Strategist", "Attacker", "Defender", "Supporter", "Coordinator");
+            for (String role : allPossibleRoles) {
+                if (currentRoles.contains(role)) {
+                    missingRoles.add(role);
+                }
+            }
+            int neededRoles = requiredRole - current;
+            List<String> required_missingList = missingRoles.stream().limit(neededRoles).toList();
+
+            boolean fixed = false;
+
+            //Find the swap from other teams
+            for(Team swapTeam : teams) {
+                if(swapTeam.equals(failing_team)) {
+                    continue;
+                }
+                for (String neededRole : required_missingList) {
+
+                    Participant swap_player = swapTeam.personality_lowestRankedPlayer(neededRole);
+                    if(swap_player == null) {
+                        continue;
+                    }
+                    //remove the lowest rank redundant role from failing team
+                    Participant removeFromFailing = failing_team.personality_lowestRankedPlayer(neededRole);
+                    if(removeFromFailing == null) {
+                        continue;
+                    }
+                    //Perform the swap
+                    failing_team.removePlayer(removeFromFailing);
+                    swapTeam.removePlayer(swap_player);
+
+                    failing_team.addPlayers(swap_player);
+                    swapTeam.addPlayers(removeFromFailing);
+
+                    System.out.println("ROLE FIX SWAP: " +
+                            swap_player.getName() + " (" + swap_player.getPreferredRole() + ") moved to " + failing_team.getTeamName() +
+                            ", swapped with " + removeFromFailing.getName() + " from " + swapTeam.getTeamName());
+
+                    fixed = true;
+                    break;
+                }
+                if(!fixed){
+                    System.err.print("CRITICAL: Could not fix role diversity for team "+ failing_team.getTeamName());
+                }
+
+            }
+
+            //revalidate personality mix after all the swaps
+            List<Map<String, Object>> remainingIssues = checkRoleDiversity(teams);
+            if (!remainingIssues.isEmpty()) {
+                System.err.println("Some teams still role diversity after attempted fixes:");
+                for (Map<String, Object> issue : remainingIssues) {
+                    Team team = (Team) issue.get("team");
+                    String reason = (String) issue.get("reason");
+                    System.err.println("Team " + team.getTeamName() + " failed due to: " + reason);
+                }
+            } else {
+                System.out.println("All role diversity violations resolved successfully.");
+            }
+
+
+
+
         }
     }
 
