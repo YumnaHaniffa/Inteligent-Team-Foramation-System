@@ -4,6 +4,7 @@ import com.gameclub.team.model.Participant;
 import com.gameclub.team.service.FileService;
 import com.gameclub.team.service.PersonalityClassifier;
 
+import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.spec.EdECPoint;
@@ -38,7 +39,7 @@ public class SurveyController {
 
 
 
-    public void runSurvey() {
+    public Participant runSurvey() {
 
         //Survey interaction
         //1. Display the questions
@@ -52,13 +53,13 @@ public class SurveyController {
         FileService  fileService = new FileService(file_path);
 
 
-        System.out.println("==========================================");
+        System.out.println("\n==========================================");
         System.out.println("  PARTICIPANT SURVEY ");
         System.out.println("==========================================");
 
         //personality ranking
-        System.out.print("\nPersonality Traits : Rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree)");
-        int q1 = SurveyController.promptPersonalityRating("Q1. I enjoy taking the lead and guiding others during group activities.");
+        System.out.print("\nPersonality Traits : Rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree)\n");
+        int q1 = SurveyController.promptPersonalityRating("\nQ1. I enjoy taking the lead and guiding others during group activities.");
         int q2 = SurveyController.promptPersonalityRating("Q2. I prefer analyzing situations and coming up with strategic solutions.");
         int q3 = SurveyController.promptPersonalityRating("Q3. I work well with others and enjoy collaborative teamwork.");
         int q4 = SurveyController.promptPersonalityRating("Q4. I am calm under pressure and can help maintain team morale.");
@@ -137,14 +138,14 @@ public class SurveyController {
             throw new RuntimeException(e);
         }
 
-
+        return player;
     }
 
 
     public static int promptPersonalityRating(String question){
 
        while(true){
-           System.out.println(question + " -> Rating (1-5): ");
+           System.out.println(question);
 
             try{
                 String input = scanner.nextLine().trim();
@@ -183,6 +184,24 @@ public class SurveyController {
         }
     }
 
+    public void displaySurvey(Participant p){
+        System.out.println("\n====================================================");
+        System.out.println("     \uD83C\uDF89 SURVEY COMPLETED \uD83C\uDF89       ");
+        System.out.println("\n====================================================");
+
+        System.out.println("Here is your submitted information:");
+        System.out.println("------------------------------------------");
+        System.out.println("Player ID          : " +p.getPlayerId() );
+        System.out.println("Player Name        : " +p.getName() );
+        System.out.println("Player Email       : " +p.getEmail() );
+        System.out.println("Player Skill Level : " +p.getSkillLevel() );
+        System.out.println("Preferred Game     : " + p.getPreferredGame());
+        System.out.println("Preferred Role     : " +p.getPreferredRole() );
+        System.out.println("Personality Score  : " + p.getPersonalityScore() );
+        System.out.println("Personality Type    : " + p.getPersonalityType() );
+        System.out.println("------------------------------------------------");
+
+    }
 
 
 

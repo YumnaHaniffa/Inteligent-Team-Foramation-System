@@ -58,7 +58,6 @@ public class FileService implements FileServiceInt {
             //write the csv line
             pw.println(csvLine);
 
-            System.out.println("Successfully wrote" + participant.getName() + " data");
 
 
         } catch (IOException e) {

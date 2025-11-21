@@ -11,7 +11,7 @@ import java.util.*;
 
 //Algorithm
 //1. The composite score = personality score +skill level is calculated for each participant -> done in Participant class
-public class TeamBuilder implements TeamFormationInt {
+public class TeamBuilder{
 
 //2. The participants will be sorted based on the composite score
     public List<Participant> sortParticipants(List<Participant> listOfParticipants) {
@@ -75,21 +75,11 @@ public class TeamBuilder implements TeamFormationInt {
         return teams;
 
     }
-
+    //WRITE THE FORMED TEAMS TO TH CSV
 
 
 }
 
-
-
-    //c. Check for skill balance  - ensure the above changes  haven't made the overall skill imbalanced
-    // every final team, calculate the average skill score
-    //  Calculate the algorithm variance between the avg skill scores
-    // validate using a threshold (1 point) , the algorithm will repeat adjustment
-
-    //d. If the system finds two different ways to arrange the players that both fully satisfy every single constraint
-        // collects all the equally valid team combinations
-        // uses a random number generator to pick one
 
 
 

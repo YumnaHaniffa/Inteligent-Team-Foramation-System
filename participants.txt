@@ -1,0 +1,3 @@
+ID,Name,Email,PreferredGame,SkillLevel,PreferredRole,PersonalityScore,PersonalityType
+Yumna,yumna@university.edu,P004,FIFA,7,Defender,0.00,Balanced
+Nali,nali@university.edu,P004,Basketball,7,Coordinator,0.00,Balanced
