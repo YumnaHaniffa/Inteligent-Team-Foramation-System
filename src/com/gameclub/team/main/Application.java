@@ -2,7 +2,9 @@ package com.gameclub.team.main;
 
 import com.gameclub.team.controller.OrganizerController;
 import com.gameclub.team.controller.SurveyController;
+import com.gameclub.team.controller.TeamBuilder;
 import com.gameclub.team.model.Participant;
+import com.gameclub.team.model.Team;
 import com.gameclub.team.service.FileService;
 
 import java.io.File;
@@ -32,7 +34,7 @@ public class Application {
 
                  switch (choice) {
                      case 1:
-                         //organizerFlow(sc);
+                         organizerFlow(sc);
                          return;
 
                      case 2:
@@ -59,9 +61,9 @@ public class Application {
      }
 
          //Organizer workflow
-         public void organizerFlow(Scanner scanner) {
+         public static void organizerFlow(Scanner scanner) {
 
-             OrganizerController controller = new OrganizerController();
+             OrganizerController orgController = new OrganizerController();
              List<Participant> participants = new ArrayList<>();
 
              while (true) {
@@ -78,10 +80,12 @@ public class Application {
                          System.out.println("Enter the full path to the participant CSV file: ");
                          String fullPath = scanner.nextLine().trim();
 
+                         //System.out.println("DEBUG: Checking path -> [" + fullPath + "]");
+
 
                          //Validate path
                          File file = new File(fullPath);
-                         if (file.exists() || file.isDirectory()) {
+                         if (!file.exists() || !file.isFile()) {
                              System.out.println("Invalid file path. Please try again.");
                              break;
 
@@ -89,14 +93,30 @@ public class Application {
                          System.out.println("Loading participant data from file... ");
 
                          try {
-                             participants = controller.uploadParticipantData(fullPath);
+                             participants = orgController.uploadParticipantData(fullPath);
 
                              if (participants.isEmpty()) {
                                  System.out.println("Participant data could not be loaded as it doesnt contain valid participant records. Please try again.");
 
                              } else {
                                  System.out.println("Participant data loaded successfully.");
-                                 System.out.println("loaded" + participants.size() + " participants");
+                                 System.out.println("loaded " + participants.size() + " participants");
+
+                                 // CODE TO DISPLAY RESULTS ---
+                                 System.out.println("\n--- Loaded Participants Snippet (First 5) ---");
+                                 // display few records to visually confirm the file is loaded
+                                 int displayLimit = Math.min(participants.size(), 5);
+                                 for (int i = 0; i < displayLimit; i++) {
+                                     Participant p = participants.get(i);
+                                     System.out.printf("  - ID: %s, Name: %s, Game: %s, Skill: %d, Role: %s\n",
+                                             p.getPlayerId(),
+                                             p.getName(),
+                                             p.getPreferredGame(),
+                                             p.getSkillLevel(),
+                                             p.getPreferredRole()
+                                     );
+                                 }
+                                 System.out.println("-------------------------------------------\n");
                              }
 
                          } catch (Exception e) {
@@ -107,8 +127,31 @@ public class Application {
 
                      case "2":
 
-                         System.out.println("Please the team size:");
-                         int team_size = Integer.parseInt(scanner.nextLine());
+                         // TEAM FORMATION
+                         if(participants.isEmpty()) {
+                             System.out.println(" No participant data loaded. Please upload a CSV file first (Option 1).");
+                             break;
+                         }
+                         System.out.println("\nEnter the desired team size");
+                         int team_size;
+                         try{
+                             // give a minimum team size to make the formation logical
+                             team_size = Integer.parseInt(scanner.nextLine().trim());
+                             if(team_size < 2) {
+                                 System.out.println("The team size must be at least. Please try again.");
+                                 break;
+
+                             }
+                         } catch (NumberFormatException e) {
+                             System.out.println("Invalid input. Enter a numeric value for team size. Please try again.");
+                             break;
+                         }
+                         List<Team> finalTeams = orgController.initiateTeamFormation(participants, team_size);
+
+                         TeamBuilder.displayTeams(finalTeams);
+
+                         break;
+
 
                  }
 
@@ -138,7 +181,7 @@ public class Application {
                          System.out.println("Survey details have been successfully saved");
                          survey.displaySurvey(player);
                      }catch(Exception e){
-                         System.out.println("\nSurvey could not be completed" + e.getMessage());
+                         System.out.println("\nSurvey could not be completed " + e.getMessage());
                      }
 
                      break;

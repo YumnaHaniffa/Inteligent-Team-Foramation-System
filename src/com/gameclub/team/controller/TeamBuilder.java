@@ -71,11 +71,41 @@ public class TeamBuilder{
             //d. Backwards distribution round
             //assign the players for each team moving backwards, start from the team that last assigned
 
+            if(direction==1) {
+                teamIndex++;
+                if(teamIndex == numberOfTeams) {
+                    direction = -1;
+                    teamIndex = numberOfTeams -1 ;
+                }
+            }else {
+                teamIndex--;
+                if(teamIndex < 0) {
+                    direction = 1;
+                    teamIndex =0;
+                }
+            }
+
         }
         return teams;
 
     }
-    //WRITE THE FORMED TEAMS TO TH CSV
+    public static  void displayTeams(List<Team> teams) {
+        if (teams == null || teams.isEmpty()){
+            System.out.println("No teams were formed or teams list is empty.");
+            return;
+        }
+        System.out.println("\\n==========================================");
+        System.out.println(" FINAL TEAMS LIST");
+        System.out.println("\\n==========================================");
+
+
+        for (Team currentTeam : teams) {
+            currentTeam.displayTeamDetails();
+
+        }
+        System.out.println("Team formation process completed.");
+
+    }
 
 
 }

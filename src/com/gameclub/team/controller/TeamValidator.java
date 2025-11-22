@@ -67,8 +67,13 @@ public class TeamValidator implements TeamValidatorInt {
 
     public void fixGameCapFailure(List<Map<String, Object>> failedTeams, List<Team> teams, int gameMax) {
         for (Map<String, Object> failedT : new ArrayList<>(failedTeams)) {
-            Team failedTeam = (Team) failedT.get("team"); // get the current team from the filed teams
-            String violatingGame = (String) failedT.get("violatingGame");
+            Team failedTeam = (Team) failedT.get("Team"); // get the current team from the filed teams
+            String violatingGame = (String) failedT.get("gameName");
+
+            if(failedTeam== null || violatingGame == null) {
+                System.out.println("Error retrieving failed team details.Skipping fix for this entry");
+            }
+
 
             //find the suitable player to be removed
             Participant playerToRemove = failedTeam.lowestRankedPlayerByGame(violatingGame);
@@ -109,7 +114,7 @@ public class TeamValidator implements TeamValidatorInt {
             }
             //Perform Swap
             if (playerToSwap != null) {
-                failedTeams.remove(playerToRemove);
+                failedTeam.removePlayer(playerToRemove);
                 failedTeam.addPlayers(playerToSwap);
 
                 swapTeam.removePlayer(playerToSwap);
@@ -138,8 +143,8 @@ public class TeamValidator implements TeamValidatorInt {
         if (!remainingViolations.isEmpty()) {
             System.err.println("Some teams still violate the game cap after attempted fixes:");
             for (Map<String, Object> violation : remainingViolations) {
-                Team team = (Team) violation.get("team");
-                String game = (String) violation.get("violatingGame");
+                Team team = (Team) violation.get("Team");
+                String game = (String) violation.get("gameName");
                 System.err.println("Team " + team.getTeamName() + " exceeds cap for game: " + game);
             }
         } else {
@@ -181,6 +186,7 @@ public class TeamValidator implements TeamValidatorInt {
             if (failureType != null) {
                 //give reasons for personality failure
                 Map<String, Object> failure = new HashMap<>();// LATER HOW TO ADD THE TYPE
+                failure.put("Team", team);
                 failure.put("teamName", team.getTeamName());
                 failure.put("reason", failureType);
                 failure.put("leaderCount", leaderCount);
@@ -200,8 +206,15 @@ public class TeamValidator implements TeamValidatorInt {
 
         //give priority to fixing "Leader"
         for (Map<String, Object> failure : failedTeams) {
-            Team failingTeam = (Team) failure.get("team");
+            Team failingTeam = (Team) failure.get("Team");
             String reason = (String) failure.get("reason");
+
+
+            if (failingTeam == null) {
+                System.err.println("Team object was null during personality fix. Skipping this entry.");
+                continue;
+            }
+
 
             switch (reason) {
                 case "No_leaders": {
@@ -356,7 +369,7 @@ public class TeamValidator implements TeamValidatorInt {
         if (!remainingIssues.isEmpty()) {
             System.err.println("Some teams still violate personality mix after attempted fixes:");
             for (Map<String, Object> issue : remainingIssues) {
-                Team team = (Team) issue.get("team");
+                Team team = (Team) issue.get("Team");
                 String reason = (String) issue.get("reason");
                 System.err.println("Team " + team.getTeamName() + " failed due to: " + reason);
             }
@@ -381,9 +394,9 @@ public class TeamValidator implements TeamValidatorInt {
         List<Map<String, Object>> failedTeams = new ArrayList<>();
         for (Team team : teams) {
             //get the role count per team
-            Map<String, Object> roleCount = new HashMap<>();
+            Map<String, Integer> roleCount = new HashMap<>();
             for (Participant player : team.getMembers()) {
-                roleCount.put(player.getPreferredRole(), roleCount.getOrDefault(player.getPreferredRole(), 0));
+                roleCount.put(player.getPreferredRole(), roleCount.getOrDefault(player.getPreferredRole(), 0)+1);
 
             }
             int uniqueRoles = roleCount.size();
@@ -416,12 +429,12 @@ public class TeamValidator implements TeamValidatorInt {
 
         List<Map<String,Object>> failedTeams = checkRoleDiversity(teams);
 
-        if (!failedTeams.isEmpty()) {
+        if (failedTeams.isEmpty()) {
             System.out.println("No role diversity issues detected.");
             return;
         }
         for (Map<String,Object> failedT : failedTeams) {
-            Team failing_team = (Team) failedT.get("team");
+            Team failing_team = (Team) failedT.get("Team");
             int requiredRole =  (Integer) failedT.get("requiredRole");
             int current = (Integer) failedT.get("uniqueRoles");
 
@@ -485,7 +498,7 @@ public class TeamValidator implements TeamValidatorInt {
             if (!remainingIssues.isEmpty()) {
                 System.err.println("Some teams still role diversity after attempted fixes:");
                 for (Map<String, Object> issue : remainingIssues) {
-                    Team team = (Team) issue.get("team");
+                    Team team = (Team) issue.get("Team");
                     String reason = (String) issue.get("reason");
                     System.err.println("Team " + team.getTeamName() + " failed due to: " + reason);
                 }
@@ -557,7 +570,7 @@ public class TeamValidator implements TeamValidatorInt {
 
             if (deviation > skillThreshold) {
                 Map<String, Object> failure = new HashMap<>();
-                failure.put("team", teams.get(i));
+                failure.put("Team", teams.get(i));
                 failure.put("averageSkill", teamAvg);
                 failure.put("deviation", deviation);
                 failure.put("reason", "skill_imbalance");
@@ -657,7 +670,7 @@ public class TeamValidator implements TeamValidatorInt {
         if (!remaining.isEmpty()) {
             System.err.println("Some teams still violate skill balance after attempted fixes:");
             for (Map<String, Object> issue : remaining) {
-                Team team = (Team) issue.get("team");
+                Team team = (Team) issue.get("Team");
                 double avg = (double) issue.get("averageSkill");
                 double dev = (double) issue.get("deviation");
                 System.err.println("Team " + team.getTeamName() + " avg skill = " + avg + " (deviation = " + dev + ")");
@@ -668,20 +681,6 @@ public class TeamValidator implements TeamValidatorInt {
 
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

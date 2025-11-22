@@ -63,7 +63,7 @@ public class Participant {
         //assign personality using personality Classifier class
 
         PersonalityClassifier classifier = new PersonalityClassifier();
-        double normalizedScore = (double) this.raw_personalityScore / max_raw_personalityScore *100.0;
+        this.normalizedScore = (double) this.raw_personalityScore / max_raw_personalityScore *100.0;
         this.personalityType = classifier.classify(this.normalizedScore);
         //calculate composite score and normalize
         this.compositeScore = calculateCompositeScore();
@@ -79,6 +79,7 @@ public class Participant {
         this.skillLevel = skillLevel;
         this.preferredRole = preferredRole;
         this.personalityType = personalityType;
+        this.normalizedScore = normalizedScore;
         this.raw_personalityScore = (int) Math.round(normalizedScore/100.0 * 25);
     }
 
@@ -183,5 +184,23 @@ public class Participant {
                 "Personality Type: " + personalityType + " (Mix Constraint Input)\n" +
                 "---------------------------------";
     }
+     // to display details of each participant in a team
+    public String toDisplayString() {
+        return String.format("%-15s | %-5s | %-10s | %-10s | %-5d | %s",
+                this.name,
+                this.playerId,
+                this.preferredGame,
+                this.preferredRole,
+                this.skillLevel,
+                this.personalityType);
+    }
+
+
+
+
+
+
+
+
     }
 

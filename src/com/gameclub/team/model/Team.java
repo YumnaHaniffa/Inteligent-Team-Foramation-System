@@ -137,6 +137,23 @@ public class Team {
         return members.stream().min(Comparator.comparing(Participant::getSkillLevel)).orElse(null);
     }
 
+    //Display the formed
+    public void displayTeamDetails(){
+        System.out.println("\nTeam Name: " + this.getTeamName() + " (Members: " + this.getMembers().size() + ")");
+        System.out.println("-----------------------------------------------------------");
+
+        //header per team
+        System.out.printf("%-15s | %-5s | %-10s | %-10s | %-5s | %s\n ",
+                 "Name", "ID", "Game", "Role", "Skill- Level", "Personality-Type");
+
+        System.out.println("-----------------------------------------------------");
+
+        //Iterate through each team to be displayed
+        for(Participant p : this.getMembers()){
+            System.out.println(p.toDisplayString());
+        }
+    }
+
 
 
 

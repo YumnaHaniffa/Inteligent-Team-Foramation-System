@@ -10,7 +10,7 @@ import java.util.Map;
 public interface ValidationServiceInt {
 
     //Validate survey data
-    public String validate_id(String inputId);
+    public String validate_id(String inputId,boolean checkForExistence);
     public String validate_email(String inputEmail);
     public int validateScore(String rawInput,int min, int max);
 

@@ -16,6 +16,10 @@ public class ValidationService implements ValidationServiceInt {
     //Validate participant details -> Id, Name and email
     private String file_path;
 
+    public ValidationService(String file_path) {
+        this.file_path = file_path;
+    }
+
     public boolean idExists(String filePath, String id) {
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
 
@@ -45,7 +49,7 @@ public class ValidationService implements ValidationServiceInt {
     }
 
 
-    public String validate_id(String inputId) {
+    public String validate_id(String inputId,boolean checkForExistence) {
 
         String id_pattern = "^[A-Z]\\d{3}$";
 
@@ -53,12 +57,15 @@ public class ValidationService implements ValidationServiceInt {
             throw new IllegalArgumentException("The participant id cannot be empty "); //as the input length is not 4
         }
         //check if id follows the "P001" pattern
-        if (!id_pattern.matches(id_pattern)) {
+        if (!inputId.matches(id_pattern)) {
             throw new IllegalArgumentException("Invalid ID format (must be 1 letter + 3 digits, e.g., P001)");
         }
         //check if the id already exists
-        if (idExists(file_path, inputId)) {
-            throw new IllegalArgumentException("The participant id already exists");
+        if (checkForExistence) {
+            if (idExists(file_path, inputId)) {
+                throw new IllegalArgumentException("The participant id already exists");
+            }
+
         }
 
         return inputId;
@@ -69,8 +76,8 @@ public class ValidationService implements ValidationServiceInt {
         if (inputName == null || inputName.trim().isEmpty()) {
             throw new IllegalArgumentException("The participant name cannot be empty");
         }
-        if (!inputName.matches("^[A-Za-z]+$")) {
-            throw new IllegalArgumentException("Name can only contain letters and spaces)");
+        if (!inputName.matches("^[A-Za-z0-9_]+$")) {
+            throw new IllegalArgumentException("Name can only contain letters, numbers, and underscores)");
         }
 
     }
@@ -83,7 +90,7 @@ public class ValidationService implements ValidationServiceInt {
         if (inputEmail.isEmpty()) {
             throw new IllegalArgumentException("The participant email cannot be empty");
         }
-        if (!email_pattern.matches(email_pattern)) {
+        if (! inputEmail.matches(email_pattern)) {
             throw new IllegalArgumentException("Invalid email format");
         }
         return inputEmail;

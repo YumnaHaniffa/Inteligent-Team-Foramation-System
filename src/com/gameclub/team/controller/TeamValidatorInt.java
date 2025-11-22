@@ -7,11 +7,7 @@ import java.util.Map;
 
 public interface TeamValidatorInt {
 
-
-    //The role diversity checker and skill balance checker
-    //List<Map<String ,Object>> validate(Team team, double globalRef);
-
-    //
+    //=======================================================================================================================//
     public List<Map<String, Object>> checkGameCap(List<Team> teams, int gameMax);
     public void fixGameCapFailure(List<Map<String, Object>> failedTeams, List<Team> teams, int gameMax);
     public List<Map<String, Object>> checkPersonalityMix(List<Team> teams);

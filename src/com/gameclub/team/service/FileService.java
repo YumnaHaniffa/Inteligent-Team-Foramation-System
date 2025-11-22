@@ -23,8 +23,8 @@ public class FileService implements FileServiceInt {
 
 
     private String file_path;
-    private static final String csv_header = "ID,Name,Email,PreferredGame,SkillLevel,PreferredRole,PersonalityScore,PersonalityType";
-    //private static final int max_persona_score = 25;
+    private static String[] csv_header = {"ID","Name","Email","PreferredGame","SkillLevel","PreferredRole","PersonalityScore","PersonalityType"};
+    private static final int max_persona_score = 25;
 
     public FileService(String file_path) {
         this.file_path = file_path;
@@ -38,9 +38,9 @@ public class FileService implements FileServiceInt {
             //Write header if file empty
             File file = new File(file_path);
             if (file.length() == 0) {
-                pw.println(csv_header);
+                pw.println(String.join(",",csv_header));
             }
-            double normalizedScore = participant.getPersonalityScore();
+            double normalizedScore = participant.getNormalizedScore();
 
 
             //Construct the csv
@@ -51,7 +51,7 @@ public class FileService implements FileServiceInt {
                     participant.getPreferredGame(),
                     participant.getSkillLevel(),
                     participant.getPreferredRole(),
-                    participant.getNormalizedScore(),
+                    normalizedScore,
                     participant.getPersonalityType()
             );
 
@@ -72,7 +72,7 @@ public class FileService implements FileServiceInt {
     public List<Participant> loadParticipants() {
         List<Participant> participants = new ArrayList<>();
         final int fieldCount = 8; // only data from 7 fields are needed, the variable should be used across all objects
-        ValidationService validator = new ValidationService();
+        ValidationService validator = new ValidationService(this.file_path);
         //ensure the file is closed soon after reading
         try (BufferedReader br = new BufferedReader(new FileReader(file_path))) {
 
@@ -102,7 +102,7 @@ public class FileService implements FileServiceInt {
                     String personalityType = values[7].trim();
 
                     //Validate data
-                    validator.validate_id(playerId);
+                    validator.validate_id(playerId,false);
                     validator.validate_name(name);
                     validator.validate_email(email);
 

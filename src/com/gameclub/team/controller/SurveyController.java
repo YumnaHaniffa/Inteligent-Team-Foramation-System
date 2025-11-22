@@ -1,9 +1,12 @@
 package com.gameclub.team.controller;
 
+import com.gameclub.team.model.InterestGame;
 import com.gameclub.team.model.Participant;
+import com.gameclub.team.model.Role;
 import com.gameclub.team.service.FileService;
 import com.gameclub.team.service.PersonalityClassifier;
 
+import javax.lang.model.type.IntersectionType;
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,11 +18,8 @@ import java.util.Scanner;
 
 public class SurveyController {
 
-    //map the selections to sting values
-    private static final String[] game_options = {"Valorant","Dota","FIFA","Basketball","Badminton"};
-    private static final String[] role_options = {"Strategist", "Attacker", "Defender", "Supporter", "Coordinator"};
-    private static final Scanner scanner = new Scanner(System.in);
-    private static String file_path = "participants.txt";
+     static Scanner scanner = new Scanner(System.in);
+     private static String file_path = "participants.txt";
 
     //GET PARTICIPANT DATA
     public Participant getParticipantData(){
@@ -49,7 +49,6 @@ public class SurveyController {
 
         //access data in the method above
         Participant basicParticipantData = getParticipantData();
-
         FileService  fileService = new FileService(file_path);
 
 
@@ -58,6 +57,7 @@ public class SurveyController {
         System.out.println("==========================================");
 
         //personality ranking
+
         System.out.print("\nPersonality Traits : Rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree)\n");
         int q1 = SurveyController.promptPersonalityRating("\nQ1. I enjoy taking the lead and guiding others during group activities.");
         int q2 = SurveyController.promptPersonalityRating("Q2. I prefer analyzing situations and coming up with strategic solutions.");
@@ -74,42 +74,33 @@ public class SurveyController {
         String personalityType = classifier.classify(normalizedScore);
 
         //Skill Level
-        int skillLevel = SurveyController.promptForSelection("\n Select skill Level (1-10): How would you rate your skill?" ,1,10);
+        int skillLevel = SurveyController.promptForSelection("\n Select skill Level: How would you rate your skill?" ,1,10);
+
 
         //Select game  Interest
-        int gameInterestIndex = SurveyController.promptForSelection("""
-                      
-                       Select your preferred game (1-5):\
-                      
-                      1. Valorant\
-                      
-                      2. Dota\
-                      
-                      3. FIFA\
-                      
-                      4. Basketball\
-                      
-                      5. Badminton""",1,game_options.length);
-
-        String  game_option = game_options[gameInterestIndex-1];
-
+        InterestGame[] gamesOptions = InterestGame.values();
+        System.out.println("\nSelect your preferred game (1-5):");
+        for(int i= 0;i< gamesOptions.length;i++){
+            System.out.println((i+1) + ". " + gamesOptions[i]);
+        }
+        int gameInterestIndex = SurveyController.promptForSelection("",1,gamesOptions.length);
+        InterestGame selectedGame = gamesOptions[gameInterestIndex-1];
+        String game_option = selectedGame.toString();
 
 
         //Preferred role
-        int roleIndex = SurveyController.promptForSelection("""
-                      Select your preferred role (1-5):
-                      
-                      1. Strategist - Focuses on tactics and planning. Keeps the bigger picture in mind during gameplay \
-                      
-                      2. Attacker - Front line player. Good reflexes, offensive tactics, quick execution.\
-                      
-                      3. Defender - Protects and supports team stability. Good under pressure and team-focused\
-                      
-                      4. Supporter - Jack-of-all-trades. Adapts roles, ensures smooth coordination.\
-                      
-                      5. Coordinator - Communication lead. Keeps the team informed and organized in real time.\s""", 1,role_options.length);
+        Role[] role_options = Role.values();
+        System.out.println("\nSelect your preferred role (1-5):");
+        for(int i= 0;i< role_options.length;i++){
+            System.out.println((i+1) + ". " + role_options[i]);
+        }
+        int roleIndex = SurveyController.promptForSelection("",1,role_options.length);
+        Role selectedRole = role_options[roleIndex-1];
+        // in the survey
+        String role_option = selectedRole.toString();
+        // in the file
+        String role_option_csv = selectedRole.getRole();
 
-        String  role_option = role_options[roleIndex-1];
 
 
         // DATA PROCESSING
@@ -121,7 +112,7 @@ public class SurveyController {
                 basicParticipantData.getEmail(),
                 game_option,
                 skillLevel,
-                role_option,
+                role_option_csv,
                 normalizedScore,
                 personalityType
         );
