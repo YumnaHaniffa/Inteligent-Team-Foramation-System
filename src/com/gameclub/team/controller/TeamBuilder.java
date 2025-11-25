@@ -2,10 +2,14 @@ package com.gameclub.team.controller;
 
 import com.gameclub.team.model.Participant;
 import com.gameclub.team.model.Team;
+import com.gameclub.team.service.ConstraintChecker;
 import com.gameclub.team.service.TeamFormationResult;
+import com.gameclub.team.thread.BestSwapInfo;
+import com.gameclub.team.thread.SwapEvaluationTask;
 
 import java.sql.ClientInfoStatus;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 //==================================================================================//
@@ -33,7 +37,24 @@ import java.util.stream.Collectors;
 //1. The composite score = personality score +skill level is calculated for each participant -> done in Participant class
 public class TeamBuilder{
 
-//2. The participants will be sorted based on the composite score
+    private ConstraintChecker constraintChecker;
+
+    // Dependency Injection Constructor (Preferred for testing)
+    public TeamBuilder(ConstraintChecker constraintChecker) {
+        this.constraintChecker = constraintChecker;
+    }
+
+    public TeamBuilder() {
+
+    }
+
+    public void setConstraintChecker(ConstraintChecker constraintChecker) {
+        this.constraintChecker = constraintChecker;
+    }
+
+
+
+    //2. The participants will be sorted based on the composite score
     public List<Participant> sortParticipants(List<Participant> listOfParticipants) {
         if (listOfParticipants == null || listOfParticipants.isEmpty()) return Collections.emptyList();
         listOfParticipants.sort(Comparator.comparingDouble(Participant::getCompositeScore).reversed());
@@ -57,11 +78,11 @@ public class TeamBuilder{
         List<Participant> allLeaders = listOfParticipants.stream()
                 .filter(p -> "Leader".equals(p.getPersonalityType()))
                 .sorted(Comparator.comparingDouble(Participant::getCompositeScore).reversed())
-                .collect(Collectors.toList());
+                .toList();
 
         List<Participant> nonLeaders = listOfParticipants.stream()
                 .filter(p -> !"Leader".equals(p.getPersonalityType()))
-                .collect(Collectors.toList());
+                .toList();
 
         // Assign exactly one leader per team (if available)
         List<Participant> assignedLeaders = new ArrayList<>();
@@ -78,7 +99,7 @@ public class TeamBuilder{
         // 2. All Leaders who were NOT assigned (Excess Leaders)
         List<Participant> excessLeaders = allLeaders.stream()
                 .filter(p -> !assignedLeaders.contains(p))
-                .collect(Collectors.toList());
+                .toList();
 
         System.out.println("LOG: Found " + assignedLeaders.size() + " initial leaders assigned. " + excessLeaders.size() + " excess leaders unassigned.");
 
@@ -151,7 +172,7 @@ public class TeamBuilder{
         // Print Unassigned Leaders as requested
         List<Participant> unassignedLeaders = result.unassignedParticipants.stream()
                 .filter(p -> "Leader".equals(p.getPersonalityType()))
-                .collect(Collectors.toList());
+                .toList();
 
         System.out.println("\n================================================");
         System.out.println("      UNASSIGNED PARTICIPANTS REPORT");
@@ -267,102 +288,6 @@ public class TeamBuilder{
         return failedTeams;
     }
 
-    public List<Map<String, Object>> fixGameVariety(List<Team> teams, int gameMax) {
-        List<Map<String, Object>> failedTeams = checkGameVariety(teams, gameMax);
-        List<Map<String, Object>> unresolvableIssues = new ArrayList<>();
-
-        for (Map<String, Object> failure : new ArrayList<>(failedTeams)) {
-            Team failingTeam = (Team) failure.get("Team");
-            String overCapGame = (String) failure.get("game");
-
-            try {
-                // 1. Identify player to remove: Lowest skill player preferring the overCapGame
-                Participant playerToRemove = failingTeam.getMembers().stream()
-                        .filter(p -> p.getPreferredGame().equals(overCapGame))
-                        .min(Comparator.comparingInt(Participant::getSkillLevel))
-                        .orElse(null);
-
-                if (playerToRemove == null) continue;
-
-                Participant playerToSwap = null;
-                Team swapTeam = null;
-
-                // 2. Find a suitable player to swap in from another team
-                for (Team candidateTeam : teams) {
-                    if (candidateTeam.equals(failingTeam)) continue;
-
-                    // Find a player in the candidate team that prefers a DIFFERENT game
-                    Participant candidate = candidateTeam.getMembers().stream()
-                            .filter(p -> !p.getPreferredGame().equals(overCapGame))
-                            .min(Comparator.comparingInt(Participant::getSkillLevel)) // Choose lowest skill from swap team
-                            .orElse(null);
-
-                    if (candidate != null && isSwapSafe(failingTeam, playerToRemove, candidateTeam, candidate, gameMax)) {
-                            playerToSwap = candidate;
-                            swapTeam = candidateTeam;
-                            break;
-                        }
-                    }
-
-                if (playerToSwap != null && swapTeam != null) {
-                    // Perform the safe swap
-                    failingTeam.removePlayer(playerToRemove);
-                    swapTeam.removePlayer(playerToSwap);
-
-                    failingTeam.addPlayers(playerToSwap);
-                    swapTeam.addPlayers(playerToRemove);
-
-                    System.out.println("SWAP (P1 Game Fixed): " + playerToRemove.getName() + " (" + playerToRemove.getPreferredGame() + ") swapped from " + failingTeam.getTeamName() +
-                            " with " + playerToSwap.getName() + " (" + playerToSwap.getPreferredGame() + ") from " + swapTeam.getTeamName());
-                } else {
-                    Map<String, Object> issue = new HashMap<>();
-                    issue.put("Name", playerToRemove.getName());
-                    issue.put("Reason", "P1 Failure (Game Cap) Unresolvable by Safe Swap.");
-                    issue.put("TeamOrigin", failingTeam.getTeamName());
-                    unresolvableIssues.add(issue);
-                }
-            }catch (Exception e) {
-                System.err.println("ERROR during P1 fix for team " + failingTeam.getTeamName() + ": " + e.getMessage());
-            }
-        }
-        return unresolvableIssues;
-    }
-
-    public List<Map<String, Object>> checkPersonalityMix(List<Team> teams) {
-
-        List<Map<String, Object>> personaFailedTeams = new ArrayList<>();
-
-        if (teams == null) return personaFailedTeams;
-        for (Team team : teams) {
-            if (!checkSingleTeamPersonalityMix(team)) {
-                Map<String, Object> failure = new HashMap<>();
-                failure.put("Team", team);
-                failure.put("teamName", team.getTeamName());
-
-                int leaderCount = team.getPersonalityCount("Leader");
-                if (leaderCount != 1) failure.put("reason", leaderCount > 1 ? "P2: too_many_leaders" : "P2: no_leaders");
-                else failure.put("reason", "P2: imbalance_thinker_or_unclassified");
-
-                personaFailedTeams.add(failure);
-            }
-        }
-        return personaFailedTeams;
-    }
-
-
-    public List<Map<String, Object>> fixPersonalityFailure(List<Map<String, Object>> failedTeams, List<Team> teams, int gameCap) {
-        List<Map<String, Object>> unresolvableIssues = new ArrayList<>();
-        failedTeams.forEach(failure -> {
-            System.out.println("LOG: Attempting to fix P2 failure: " + failure.get("reason") + " in " + failure.get("teamName"));
-            Map<String, Object> issue = new HashMap<>();
-            issue.put("Name", "N/A");
-            issue.put("Reason", failure.get("reason") + " (Fix logic placeholder - No swap attempted).");
-            issue.put("TeamOrigin", failure.get("teamName"));
-            unresolvableIssues.add(issue);
-        });
-
-        return unresolvableIssues;
-    }
 
     // ====================================================================================
     // 3. Check Role Diversity (P3)
@@ -396,22 +321,6 @@ public class TeamBuilder{
         return failedTeams;
     }
 
-    public List<Map<String, Object>> fixRoleDiversity(List<Team> teams, int gameMax) {
-
-        List<Map<String, Object>> failedTeams = checkRoleDiversity(teams);
-        List<Map<String, Object>> unresolvableIssues = new ArrayList<>();
-
-        failedTeams.forEach(failure -> {
-            System.out.println("LOG: Attempting to fix P3 failure: " + failure.get("reason") + " in " + failure.get("teamName"));
-            Map<String, Object> issue = new HashMap<>();
-            issue.put("Name", "N/A");
-            issue.put("Reason", failure.get("reason") + " (Fix logic placeholder - No swap attempted).");
-            issue.put("TeamOrigin", failure.get("teamName"));
-            unresolvableIssues.add(issue);
-        });
-
-        return unresolvableIssues;
-    }
 
 
     // ====================================================================================
@@ -450,20 +359,120 @@ public class TeamBuilder{
         return failedTeams;
     }
 
-    public List<Map<String, Object>> fixSkillBalance(List<Team> teams, double skillThreshold, int gameMax) {
 
-        List<Map<String, Object>> unresolvableIssues = new ArrayList<>();
-        List<Map<String, Object>> failedTeams = checkSkillBalance(teams, skillThreshold);
 
-        failedTeams.forEach(failure -> {
-            System.out.println("LOG: Attempting to fix P4 failure: " + failure.get("reason") + " in " + failure.get("teamName"));
-            Map<String, Object> issue = new HashMap<>();
-            issue.put("Name", "N/A");
-            issue.put("Reason", failure.get("reason") + " (Fix logic placeholder - No swap attempted).");
-            issue.put("TeamOrigin", failure.get("teamName"));
-            unresolvableIssues.add(issue);
-        });
-        return unresolvableIssues;
+
+    //Iteratively optimizes the teams using concurrent processing to find the best swap in each round quickly.
+
+    public void optimizeTeamsConcurrent(List<Team> teams) {
+
+        // --- 1. ExecutorService Setup ---
+        int poolSize = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+
+        System.out.printf("LOG: Initializing Optimization Thread Pool with %d workers.\n", poolSize);
+
+        boolean improvementFound = true;
+        int round = 1;
+
+        // Continue looping as long as we find a beneficial swap
+        while (improvementFound) {
+            improvementFound = false;
+            BestSwapInfo bestSwap = null;
+
+            // --- 2. Generate All Potential Swaps (Tasks) ---
+            List<Callable<BestSwapInfo>> tasks = new ArrayList<>();
+
+            for (int i = 0; i < teams.size(); i++) {
+                for (int j = i + 1; j < teams.size(); j++) {
+                    Team teamA = teams.get(i);
+                    Team teamB = teams.get(j);
+
+                    if (teamA.getMembers().isEmpty() || teamB.getMembers().isEmpty()) continue;
+
+                    for (Participant playerX : teamA.getMembers()) {
+                        for (Participant playerY : teamB.getMembers()) {
+                            // Create and store the task
+                            tasks.add(new SwapEvaluationTask(teamA, teamB, playerX, playerY, constraintChecker));
+                        }
+                    }
+                }
+            }
+
+            if (tasks.isEmpty()) break;
+
+            System.out.printf("--- Optimization Round %d: Evaluating %d total swaps ---\n", round++, tasks.size());
+
+            // --- 3. Parallel Execution and Result Collection ---
+            try {
+                // invokeAll executes all tasks concurrently and returns Future objects
+                List<Future<BestSwapInfo>> futures = executor.invokeAll(tasks);
+
+                double maxImprovement = 0.0;
+
+                // Sequentially analyze the results from the Futures
+                for (Future<BestSwapInfo> future : futures) {
+                    BestSwapInfo info = future.get();
+
+                    if (info.improvementScore > maxImprovement) {
+                        maxImprovement = info.improvementScore;
+                        bestSwap = info;
+                        improvementFound = true;
+                    }
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                System.err.println("ERROR: Interruption or execution issue during concurrent swap: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+
+            // --- 4. Apply the Best Change Sequentially (State Update) ---
+            if (improvementFound && bestSwap != null && bestSwap.improvementScore > 0.0) {
+
+                Team teamA = findTeamByName(teams, bestSwap.teamAName);
+                Team teamB = findTeamByName(teams, bestSwap.teamBName);
+
+                Participant playerX = teamA.getMemberByName(bestSwap.participantXName);
+                Participant playerY = teamB.getMemberByName(bestSwap.participantYName);
+
+                if (teamA != null && teamB != null && playerX != null && playerY != null) {
+                    // Critical: This modification MUST be sequential in the main thread.
+                    teamA.getMembers().remove(playerX);
+                    teamB.getMembers().remove(playerY);
+                    teamA.getMembers().add(playerY);
+                    teamB.getMembers().add(playerX);
+
+                    System.out.printf("LOG: Applied best swap (Improvement: %.2f) between %s (%s) and %s (%s).\n",
+                            bestSwap.improvementScore, playerX.getName(), teamA.getTeamName(), playerY.getName(), teamB.getTeamName());
+                } else {
+                    System.err.println("WARNING: Could not apply best swap due to missing object references. Stopping optimization.");
+                    improvementFound = false;
+                }
+            } else {
+                improvementFound = false;
+            }
+        }
+
+        // --- 5. Cleanup ---
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException ie) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("LOG: Concurrent Optimization finished. Thread pool shut down.");
+    }
+
+    // Helper method to safely retrieve the team object by name
+    private Team findTeamByName(List<Team> teams, String name) {
+        for (Team team : teams) {
+            if (team.getTeamName().equals(name)) {
+                return team;
+            }
+        }
+        return null;
     }
 
 

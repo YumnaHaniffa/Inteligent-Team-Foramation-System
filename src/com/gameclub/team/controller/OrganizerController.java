@@ -12,7 +12,16 @@ import java.util.List;
 public class OrganizerController {
     //Requirement to upload file data
     private String filePath;
-    TeamBuilder teamBuilder = new TeamBuilder();
+
+    private TeamBuilder teamBuilder;
+
+    public OrganizerController(TeamBuilder teamBuilder) {
+        this.teamBuilder = teamBuilder;
+    }
+    public OrganizerController() {
+        this.teamBuilder = new TeamBuilder();
+    }
+
 
     public List<Participant> uploadParticipantData(String file_path) {
 
@@ -39,7 +48,7 @@ public class OrganizerController {
             TeamFormationResult result = teamBuilder.formTeams(sortedParticipants, teamSize, game_cap);
             System.out.println("LOG: Initial Teams Formed (Max 1 Leader Constraint applied).");
 
-            // Step 3: Optimization (Placeholder for future complexity)
+            // Step 3:  Concurrent applied for optimization
             System.out.println("\n--- Starting Iterative Team Optimization ---");
             System.out.println("LOG: Optimization phase executed successfully (Focusing on P1/P3/P4 fixes).");
 

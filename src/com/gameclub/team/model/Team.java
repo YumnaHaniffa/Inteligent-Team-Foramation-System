@@ -112,21 +112,6 @@ public class Team {
         return (double) getTotalSkill() / members.size();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Helper to identify player to swap out in skill optimization
     public Participant getHighestSkilledPlayer() {
         return members.stream()
