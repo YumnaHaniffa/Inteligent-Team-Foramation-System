@@ -5,6 +5,7 @@ import com.gameclub.team.model.Participant;
 import com.gameclub.team.service.FileService;
 import com.gameclub.team.service.TeamFormationResult;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,9 +43,23 @@ public class OrganizerController {
             System.out.println("\n--- Starting Iterative Team Optimization ---");
             System.out.println("LOG: Optimization phase executed successfully (Focusing on P1/P3/P4 fixes).");
 
+
+            final String output_filePath = "team formation results.csv";
+
+            //Auto save the teams formed
+            FileService fileService = new FileService();
+            try{
+                System.out.println("Saving the formed teams to file.........");
+                fileService.saveFormedTeams(result,output_filePath);
+                System.out.println("\nTeam successfully saved ");
+            }
+            catch(IOException e){
+                System.out.println("Failed to automatically save team roster to CSV: ");
+            }
             return result;
+
         } catch (Exception e) {
-            System.err.println("FATAL ERROR during initiateTeamFormation execution: " + e.getMessage());
+            System.err.println("ERROR during initiateTeamFormation execution: " + e.getMessage());
             e.printStackTrace();
             return new TeamFormationResult(Collections.emptyList(), participants);
         }
