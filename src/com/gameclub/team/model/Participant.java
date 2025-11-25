@@ -79,14 +79,16 @@ public class Participant {
         this.normalizedScore = normalizedScore;
         this.raw_personalityScore = (int) Math.round(normalizedScore/100.0 * 25);
     }
-
-    public Participant(String name, String preferredRole, String personalityType, int skillLevel, String preferredGame) {
+    //
+    public Participant(String name, String preferredRole, String personalityType, int skillLevel, String preferredGame,double compositeScore) {
         this.name = name;
         this.preferredRole = preferredRole;
         this.personalityType = personalityType;
         this.skillLevel = skillLevel;
         this.preferredGame = preferredGame;
+        this.compositeScore = compositeScore;
     }
+
 
 
 
@@ -183,6 +185,11 @@ public class Participant {
                 this.personalityType);
     }
 
+
+    //=================thread purpose===========//
+    public Participant deepCopy() {
+        return new Participant(this.name, this.preferredGame, this.preferredRole, this.skillLevel, this.personalityType, this.compositeScore);
+    }
 
 }
 

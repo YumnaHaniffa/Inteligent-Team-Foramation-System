@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class Team {
 
 
-    private String Name;
+    private String teamName;
     //participant list
     //INDICATION OF AGGREGATION - the team has participants but the participants can exist without the team
     private final List<Participant> members;
@@ -19,19 +19,19 @@ public class Team {
 
     //with name
     public Team(String name) {
-        this.Name = name;
+        this.teamName = name;
         this.members = new ArrayList<>();
 
     }
     // Constructor used for temporary 'isSwapSafe' checks
     public Team(String Name, List<Participant> initialMembers) {
-        this.Name = Name;
+        this.teamName = Name;
         // Defensive copy to prevent external modification
         this.members = new ArrayList<>(initialMembers != null ? initialMembers : Collections.emptyList());
     }
 
     public String getTeamName() {
-        return Name;
+        return teamName;
     }
 
     public List<Participant> getMembers() {
@@ -44,7 +44,7 @@ public class Team {
         if (p != null) {
             this.members.add(p);
         } else {
-            System.err.println("ERROR: Attempted to add a null participant to " + Name);
+            System.err.println("ERROR: Attempted to add a null participant to " + teamName);
         }
 
     }
@@ -53,16 +53,8 @@ public class Team {
         if (p != null) {
             this.members.remove(p);
         } else {
-            System.err.println("ERROR: Attempted to remove a null participant from " + Name);
+            System.err.println("ERROR: Attempted to remove a null participant from " + teamName);
         }
-    }
-
-
-    public boolean canAddPlayer(Participant player, int gameCap) {
-        if (player == null) {
-            return false;
-        }
-        return getGameCount(player.getPreferredGame()) < gameCap;
     }
 
     // (Game Variety) Helper ---
@@ -79,38 +71,61 @@ public class Team {
                 .filter(p -> p != null && personalityType.equals(p.getPersonalityType()))
                 .count();
     }
-
-    // --- P3 (Role Diversity) Helper ---
-    public Participant lowestRankedPlayerByRole(String role) {
-        if (role == null) return null;
-        return members.stream()
-                .filter(p -> p != null && role.equals(p.getPreferredRole()))
-                .min(Comparator.comparingInt(Participant::getSkillLevel))
-                .orElse(null);
-    }
-    public Participant lowestRankedPlayerWithRedundantRole() {
-        if (members.isEmpty()) return null;
-
-        Map<String, Long> roleCounts = members.stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(Participant::getPreferredRole, Collectors.counting()));
-
-        Set<String> redundantRoles = roleCounts.entrySet().stream()
-                .filter(entry -> entry.getValue() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-        if (redundantRoles.isEmpty()) return null;
-
-        return members.stream()
-                .filter(p -> p != null && redundantRoles.contains(p.getPreferredRole()))
-                .min(Comparator.comparingInt(Participant::getSkillLevel))
-                .orElse(null);
-    }
+//
+//    // --- P3 (Role Diversity) Helper ---
+//    public Participant lowestRankedPlayerByRole(String role) {
+//        if (role == null) return null;
+//        return members.stream()
+//                .filter(p -> p != null && role.equals(p.getPreferredRole()))
+//                .min(Comparator.comparingInt(Participant::getSkillLevel))
+//                .orElse(null);
+//    }
+//    public Participant lowestRankedPlayerWithRedundantRole() {
+//        if (members.isEmpty()) return null;
+//
+//        Map<String, Long> roleCounts = members.stream()
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.groupingBy(Participant::getPreferredRole, Collectors.counting()));
+//
+//        Set<String> redundantRoles = roleCounts.entrySet().stream()
+//                .filter(entry -> entry.getValue() > 1)
+//                .map(Map.Entry::getKey)
+//                .collect(Collectors.toSet());
+//
+//        if (redundantRoles.isEmpty()) return null;
+//
+//        return members.stream()
+//                .filter(p -> p != null && redundantRoles.contains(p.getPreferredRole()))
+//                .min(Comparator.comparingInt(Participant::getSkillLevel))
+//                .orElse(null);
+//    }
 
     public int getTotalSkill() {
         return members.stream().filter(Objects::nonNull).mapToInt(Participant::getSkillLevel).sum();
     }
+
+    public double getAverageSkill() {
+        if (members.isEmpty()) {
+            return 0.0;
+        }
+        //Total Skill / Number of Members
+        return (double) getTotalSkill() / members.size();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Helper to identify player to swap out in skill optimization
     public Participant getHighestSkilledPlayer() {
@@ -145,6 +160,30 @@ public class Team {
             System.out.println(p.toDisplayString());
         }
     }
+
+
+    //===================threading ===========================//
+    public Team deepCopy() {
+        Team newTeam = new Team(this.teamName);
+        for (Participant member : this.members) {
+            newTeam.getMembers().add(member.deepCopy());
+
+        }
+        return newTeam;
+    }
+
+    //Finds a member in this team by name. Used by the SwapEvaluationTask
+    //locate the player within the temporary copy of the team
+
+    public Participant getMemberByName(String name) {
+        for (Participant p : this.members) {
+            if (p.getName().equals(name)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
 
 
 
