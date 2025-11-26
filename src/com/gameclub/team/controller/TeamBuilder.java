@@ -53,19 +53,19 @@ public class TeamBuilder{
 
 
     //2. The participants will be sorted based on the composite score
-    public List<Participant> sortParticipants(List<Participant> listOfParticipants) {
+    public List<Participant> sortParticipants(List<Participant> listOfParticipants) {  /* 2.1 - seq*/
         if (listOfParticipants == null || listOfParticipants.isEmpty()) return Collections.emptyList();
         listOfParticipants.sort(Comparator.comparingDouble(Participant::getCompositeScore).reversed());
-        return listOfParticipants;
+        return listOfParticipants;  // 1.1.1 - seq
     }
 
 
 
-    public TeamFormationResult formTeams(List<Participant> listOfParticipants, int teamSize, int game_cap) {
+    public TeamFormationResult formTeams(List<Participant> listOfParticipants, int teamSize, int game_cap) {   /*2.3 - seq */
         List<Team> teams = new ArrayList<>();
         List<Participant> unassignedParticipants = new ArrayList<>();
 
-        if (listOfParticipants == null || listOfParticipants.isEmpty() || teamSize <= 0) return new TeamFormationResult(teams, listOfParticipants);
+        if (listOfParticipants == null || listOfParticipants.isEmpty() || teamSize <= 0) return new TeamFormationResult(teams, listOfParticipants); /*2.3.1 - seq */
 
         int numberOfTeams = (int) Math.ceil((double) listOfParticipants.size() / teamSize);
         for (int j = 0; j < numberOfTeams; j++) {
@@ -74,19 +74,19 @@ public class TeamBuilder{
 
         // Hard Constraint: Max 1 Leader Allocation
         List<Participant> allLeaders = listOfParticipants.stream()
-                .filter(p -> "Leader".equals(p.getPersonalityType()))
-                .sorted(Comparator.comparingDouble(Participant::getCompositeScore).reversed())
+                .filter(p -> "Leader".equals(p.getPersonalityType())) /* 2.3.3 - seq*/
+                .sorted(Comparator.comparingDouble(Participant::getCompositeScore).reversed()) /* 2.3.4 - seq*/
                 .toList();
 
         List<Participant> nonLeaders = listOfParticipants.stream()
-                .filter(p -> !"Leader".equals(p.getPersonalityType()))
+                .filter(p -> !"Leader".equals(p.getPersonalityType())) /* 2.3.5 - seq*/
                 .toList();
 
         // Assign exactly one leader per team (if available)
         List<Participant> assignedLeaders = new ArrayList<>();
         for (int i = 0; i < numberOfTeams; i++) {
             if (i < allLeaders.size()) {
-                teams.get(i).addPlayers(allLeaders.get(i));
+                teams.get(i).addPlayers(allLeaders.get(i));  /*2.3.6 - seq */
                 assignedLeaders.add(allLeaders.get(i));
             }
         }
@@ -102,7 +102,7 @@ public class TeamBuilder{
         System.out.println("LOG: Found " + assignedLeaders.size() + " initial leaders assigned. " + excessLeaders.size() + " excess leaders unassigned.");
 
         remainingPlayers.addAll(excessLeaders);
-        remainingPlayers.sort(Comparator.comparingDouble(Participant::getCompositeScore).reversed()); // Sort the combined pool
+        remainingPlayers.sort(Comparator.comparingDouble(Participant::getCompositeScore).reversed()); /* 2.3.7 - seq*/
 
         // Use an index-based loop for easier manipulation of the remainingPlayers list
         for (int pIndex = 0; pIndex < remainingPlayers.size(); ) {
@@ -114,23 +114,22 @@ public class TeamBuilder{
             Collections.shuffle(teams);
 
             for (Team currentTeam : teams) {
-
                 // 1. Hard Check: Team Capacity (P5)
                 if (currentTeam.getMembers().size() >= teamSize) {
                     continue;
                 }
 
                 // 2. Hard Check: P1/P3 Constraints
-                boolean isLeader = "Leader".equals(currentPlayer.getPersonalityType());
+                boolean isLeader = "Leader".equals(currentPlayer.getPersonalityType()); /* 2.3.8 - seq*/
                 // NOTE: Assuming Participant has getPreferredGame() method
-                boolean gameCapMet = currentTeam.getGameCount(currentPlayer.getPreferredGame()) < game_cap;
-                boolean leaderConstraintMet = !isLeader || currentTeam.getPersonalityCount("Leader") < 1;
+                boolean gameCapMet = currentTeam.getGameCount(currentPlayer.getPreferredGame()) < game_cap; /* 2.3.9 - seq*/
+                boolean leaderConstraintMet = !isLeader || currentTeam.getPersonalityCount("Leader") < 1;  /* 2.3.10 - seq*/
 
                 if (gameCapMet && leaderConstraintMet) {
 
                     // 3. P2 Preference Check: Find team that currently has the fewest unique roles
                     // (This maximizes the chance of adding a new role or balancing role distribution)
-                    int currentUniqueRoles = currentTeam.getUniqueRoleCount();
+                    int currentUniqueRoles = currentTeam.getUniqueRoleCount();   /*2.3.11 - seq */
 
                     if (currentUniqueRoles < lowestUniqueRoleCount) {
                         lowestUniqueRoleCount = currentUniqueRoles;
@@ -142,7 +141,7 @@ public class TeamBuilder{
             // --- Assignment Decision ---
             if (bestFitTeam != null) {
                 // Assign player and remove from the list
-                bestFitTeam.addPlayers(currentPlayer);
+                bestFitTeam.addPlayers(currentPlayer);  /* 2.3.12 - seq*/
                 remainingPlayers.remove(pIndex); // Use remove(index) to shift subsequent elements
             } else {
                 // If no team could accept this player, move to the next player
@@ -154,7 +153,7 @@ public class TeamBuilder{
         // Any players left in remainingPlayers could not be assigned due to constraints or capacity.
         unassignedParticipants.addAll(remainingPlayers);
 
-        return new TeamFormationResult(teams, unassignedParticipants);
+        return new TeamFormationResult(teams, unassignedParticipants); /* 2.3.13 - seq*/
     }
 
 
@@ -167,7 +166,12 @@ public class TeamBuilder{
         }
 
         for (Team team : result.teams) {
-            double avgSkill = (team.getMembers().isEmpty()) ? 0 : team.getTotalSkill() / (double)team.getMembers().size();
+            double avgSkill;
+            if(team.getMembers().isEmpty()){
+                avgSkill = 0;
+            }else{
+                 avgSkill = team.getTotalSkill() / (double)team.getMembers().size();
+            }
             System.out.println("\n--- " + team.getTeamName() + " (Members: " + team.getMembers().size() + ", Avg Skill: " + String.format("%.2f", avgSkill) + ") ---");
 
             // Use standard output formatting for the table
