@@ -161,16 +161,14 @@ public class Team {
     //locate the player within the temporary copy of the team
 
     public Participant getMemberByName(String name) {
-        for (Participant p : this.members) {
-            if (p.getName().equals(name)) {
-                return p;
-            }
-        }
-        return null;
+        return members.stream()
+                .filter(p -> name.equals(p.getName()))
+                .findFirst()
+                .orElse(null);
     }
 
-
-
-
-
+    //Calculate the number of unique roles currently in the team
+    public int getUniqueRoleCount() {
+        return(int)members.stream().map(Participant::getPreferredRole).distinct().count();
+    }
 }

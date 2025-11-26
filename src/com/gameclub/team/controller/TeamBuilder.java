@@ -44,9 +44,7 @@ public class TeamBuilder{
         this.constraintChecker = constraintChecker;
     }
 
-    public TeamBuilder() {
-
-    }
+    public TeamBuilder() { }
 
     public void setConstraintChecker(ConstraintChecker constraintChecker) {
         this.constraintChecker = constraintChecker;
@@ -67,14 +65,14 @@ public class TeamBuilder{
         List<Team> teams = new ArrayList<>();
         List<Participant> unassignedParticipants = new ArrayList<>();
 
-        if (listOfParticipants.isEmpty() || teamSize <= 0) return new TeamFormationResult(teams, listOfParticipants);
+        if (listOfParticipants == null || listOfParticipants.isEmpty() || teamSize <= 0) return new TeamFormationResult(teams, listOfParticipants);
 
         int numberOfTeams = (int) Math.ceil((double) listOfParticipants.size() / teamSize);
         for (int j = 0; j < numberOfTeams; j++) {
             teams.add(new Team("Team" + (j + 1)));
         }
 
-        // --- P3 Hard Constraint: Max 1 Leader Allocation ---
+        // Hard Constraint: Max 1 Leader Allocation
         List<Participant> allLeaders = listOfParticipants.stream()
                 .filter(p -> "Leader".equals(p.getPersonalityType()))
                 .sorted(Comparator.comparingDouble(Participant::getCompositeScore).reversed())
@@ -106,35 +104,51 @@ public class TeamBuilder{
         remainingPlayers.addAll(excessLeaders);
         remainingPlayers.sort(Comparator.comparingDouble(Participant::getCompositeScore).reversed()); // Sort the combined pool
 
-        // 3. Simplified Snake Draft for remaining players
-        int teamIndex = 0;
-        int direction = 1;
+        // Use an index-based loop for easier manipulation of the remainingPlayers list
+        for (int pIndex = 0; pIndex < remainingPlayers.size(); ) {
+            Participant currentPlayer = remainingPlayers.get(pIndex);
+            Team bestFitTeam = null;
+            int lowestUniqueRoleCount = Integer.MAX_VALUE; // Start high to find the team needing diversity the most
 
-        Iterator<Participant> iterator = remainingPlayers.iterator();
-        while (iterator.hasNext()) {
-            Participant currentPlayer = iterator.next();
-            Team currentTeam = teams.get(teamIndex);
+            // Shuffle teams to introduce fairness if multiple teams have the same lowest role count (P5/Randomization)
+            Collections.shuffle(teams);
 
-            // Check team capacity and constraints
-            boolean isLeader = "Leader".equals(currentPlayer.getPersonalityType());
-            boolean hasSpace = currentTeam.getMembers().size() < teamSize;
-            boolean gameCapMet = currentTeam.getGameCount(currentPlayer.getPreferredGame()) < game_cap;
-            // Check P3 Constraint: Must NOT be a Leader if the team already has one
-            boolean leaderConstraintMet = !isLeader || currentTeam.getPersonalityCount("Leader") < 1;
+            for (Team currentTeam : teams) {
 
-            if (hasSpace && gameCapMet && leaderConstraintMet) {
-                currentTeam.addPlayers(currentPlayer);
-                iterator.remove(); // Remove player from the draft pool once assigned
+                // 1. Hard Check: Team Capacity (P5)
+                if (currentTeam.getMembers().size() >= teamSize) {
+                    continue;
+                }
+
+                // 2. Hard Check: P1/P3 Constraints
+                boolean isLeader = "Leader".equals(currentPlayer.getPersonalityType());
+                // NOTE: Assuming Participant has getPreferredGame() method
+                boolean gameCapMet = currentTeam.getGameCount(currentPlayer.getPreferredGame()) < game_cap;
+                boolean leaderConstraintMet = !isLeader || currentTeam.getPersonalityCount("Leader") < 1;
+
+                if (gameCapMet && leaderConstraintMet) {
+
+                    // 3. P2 Preference Check: Find team that currently has the fewest unique roles
+                    // (This maximizes the chance of adding a new role or balancing role distribution)
+                    int currentUniqueRoles = currentTeam.getUniqueRoleCount();
+
+                    if (currentUniqueRoles < lowestUniqueRoleCount) {
+                        lowestUniqueRoleCount = currentUniqueRoles;
+                        bestFitTeam = currentTeam;
+                    }
+                }
             }
 
-            // Update snake draft index (regardless of assignment success, the draft continues)
-            // If teamIndex hits the boundary, reverse direction
-            if (teamIndex == numberOfTeams - 1 && direction == 1) {
-                direction = -1;
-            } else if (teamIndex == 0 && direction == -1) {
-                direction = 1;
+            // --- Assignment Decision ---
+            if (bestFitTeam != null) {
+                // Assign player and remove from the list
+                bestFitTeam.addPlayers(currentPlayer);
+                remainingPlayers.remove(pIndex); // Use remove(index) to shift subsequent elements
+            } else {
+                // If no team could accept this player, move to the next player
+                // (The player remains in remainingPlayers to be unassigned)
+                pIndex++;
             }
-            teamIndex += direction;
         }
 
         // Any players left in remainingPlayers could not be assigned due to constraints or capacity.
@@ -193,172 +207,6 @@ public class TeamBuilder{
         }
         System.out.println("================================================");
     }
-
-
-    //swap between two teams
-    public boolean isSwapSafe(Team teamA, Participant playerA, Team teamB, Participant playerB, int gameMax) {
-
-        if (teamA == null || teamB == null || playerA == null || playerB == null) return false;
-
-        // Simulates the swap and checks constraints P1 and P2 on the resulting teams.
-        try {
-            // 1. Simulating Team A after swap: PlayerA out, PlayerB in
-            List<Participant> tempMembersA = new ArrayList<>(teamA.getMembers());
-            if (!tempMembersA.remove(playerA)) return false;
-            tempMembersA.add(playerB);
-            Team tempTeamA = new Team(teamA.getTeamName(), tempMembersA);
-
-            // 2. Simulating Team B after swap: PlayerB out, PlayerA in
-            List<Participant> tempMembersB = new ArrayList<>(teamB.getMembers());
-            if (!tempMembersA.remove(playerA)) return false;
-            tempMembersB.add(playerA);
-            Team tempTeamB = new Team(teamB.getTeamName(), tempMembersB);
-
-            if (tempTeamA.getGameCount(playerB.getPreferredGame()) > gameMax) return false;
-            if (tempTeamB.getGameCount(playerA.getPreferredGame()) > gameMax) return false;
-
-
-            // Check P2 (Personality Mix) on tempTeamA
-            if (!checkSingleTeamPersonalityMix(tempTeamA)) return false;
-            // Check P2 (Personality Mix) on tempTeamB
-            if (!checkSingleTeamPersonalityMix(tempTeamB)) return false;
-
-            return true;
-
-        } catch (Exception e) {
-            System.err.println("ERROR in isSwapSafe check: " + e.getMessage());
-            return false;
-        }
-    }
-
-
-    // Helper for isSwapSafe (Checks P2 constraint on a single team)
-    private boolean checkSingleTeamPersonalityMix(Team team) {
-
-        if (team == null || team.getMembers().isEmpty()) return false;
-        try {
-
-            int leaderCount = team.getPersonalityCount("Leader");
-            int thinkerCount = team.getPersonalityCount("Thinker");
-            int balancedCount = team.getPersonalityCount("Balanced");
-            int actualSize = team.getMembers().size();
-
-            // Must have exactly 1 Leader
-            if (leaderCount != 1) return false;
-
-            // Must have 1 or 2 Thinkers
-            if (thinkerCount < 1 || thinkerCount > 2) return false;
-
-            // Ensure all players are classified (for simplicity, only Leader/Thinker/Balanced are expected)
-            if (leaderCount + thinkerCount + balancedCount != actualSize) return false;
-
-            return true;
-        } catch (Exception e) {
-            System.err.println("ERROR during P2 check for team " + team.getTeamName() + ": " + e.getMessage());
-            return false;
-        }
-    }
-
-    // ====================================================================================
-    // 1. Check Game Variety (P1) - New implementation
-    // ====================================================================================
-    public List<Map<String, Object>> checkGameVariety(List<Team> teams, int gameMax) {
-        List<Map<String, Object>> failedTeams = new ArrayList<>();
-        if (teams == null) return failedTeams;
-        for (Team team : teams) {
-            try {
-                Map<String, Long> gameCounts = team.getMembers().stream()
-                        .collect(Collectors.groupingBy(Participant::getPreferredGame, Collectors.counting()));
-
-                for (Map.Entry<String, Long> entry : gameCounts.entrySet()) {
-                    if (entry.getValue() > gameMax) {
-                        Map<String, Object> failure = new HashMap<>();
-                        failure.put("Team", team);
-                        failure.put("teamName", team.getTeamName());
-                        failure.put("reason", "game_cap_violation");
-                        failure.put("game", entry.getKey());
-                        failedTeams.add(failure);
-                        break; // Only need one violation per team
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("ERROR during P1 check for team " + team.getTeamName() + ": " + e.getMessage());
-            }
-        }
-        return failedTeams;
-    }
-
-
-    // ====================================================================================
-    // 3. Check Role Diversity (P3)
-    // Constraint: 3 unique roles if size <= 5, 4 unique roles if size > 5
-    // ====================================================================================
-    public List<Map<String, Object>> checkRoleDiversity(List<Team> teams) {
-
-        List<Map<String, Object>> failedTeams = new ArrayList<>();
-        if (teams == null) return failedTeams;
-        for (Team team : teams) {
-            try {
-                Set<String> uniqueRoles = team.getMembers().stream()
-                        .filter(Objects::nonNull)
-                        .map(Participant::getPreferredRole)
-                        .collect(Collectors.toSet());
-
-                int size = team.getMembers().size();
-                int requiredRoles = size > 5 ? 4 : 3; // Rule from doc
-
-                if (uniqueRoles.size() < requiredRoles && size > 0) {
-                    Map<String, Object> failure = new HashMap<>();
-                    failure.put("Team", team);
-                    failure.put("teamName", team.getTeamName());
-                    failure.put("reason", "P3: role_diversity_violation (Found: " + uniqueRoles.size() + ", Required: " + requiredRoles + ")");
-                    failedTeams.add(failure);
-                }
-            }catch (Exception e) {
-                System.err.println("ERROR during P3 check for team " + team.getTeamName() + ": " + e.getMessage());
-            }
-        }
-        return failedTeams;
-    }
-
-
-
-    // ====================================================================================
-    // 4. Check Skill Balance (P4)
-    // Constraint: Team average skill must be within a threshold of the overall average.
-    // ====================================================================================
-    public List<Map<String, Object>> checkSkillBalance(List<Team> teams, double skillThreshold) {
-
-        List<Map<String, Object>> failedTeams = new ArrayList<>();
-        if (teams == null || teams.isEmpty()) return failedTeams;
-
-        try {
-            double totalSkillAllTeams = teams.stream().filter(Objects::nonNull).mapToInt(Team::getTotalSkill).sum();
-            int totalPlayers = teams.stream().filter(Objects::nonNull).mapToInt(team -> team.getMembers().size()).sum();
-            double overallAvg = (totalPlayers > 0) ? totalSkillAllTeams / totalPlayers : 0;
-
-            for (Team team : teams) {
-                int size = team.getMembers().size();
-                double teamAvg = (size > 0) ? (double) team.getTotalSkill() / size : 0;
-                double deviation = Math.abs(teamAvg - overallAvg);
-
-                if (deviation > skillThreshold && size > 0) {
-                    Map<String, Object> failure = new HashMap<>();
-                    failure.put("Team", team);
-                    failure.put("teamName", team.getTeamName());
-                    failure.put("averageSkill", teamAvg);
-                    failure.put("overallAvg", overallAvg);
-                    failure.put("deviation", deviation);
-                    failure.put("reason", "P4: skill_imbalance");
-                    failedTeams.add(failure);
-                }
-            }
-        }catch (Exception e) {
-            System.err.println("ERROR during P4 skill calculation: " + e.getMessage());
-        }
-        return failedTeams;
-    }
-
 
 
 
