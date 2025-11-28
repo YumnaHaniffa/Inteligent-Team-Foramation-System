@@ -30,9 +30,6 @@ public class Participant {
     private static final int max_raw_personalityScore = 25;
     private static final int max_raw_skillLevel = 10;
 
-    public List<Integer> getPersona_rating() {
-        return persona_rating;
-    }
 
     //During survey to collect participant data
     public Participant (String playerId, String name, String email){
@@ -42,7 +39,7 @@ public class Participant {
 
     }
     //After survey data Collected
-    public Participant(String playerId, String name, String email, String preferredGame, int skillLevel, String preferredRole, List<Integer> persona_rating) {
+    public Participant(String playerId, String name, String email, String preferredGame, int skillLevel, String preferredRole) {
         this.playerId = playerId;
         this.name = name;
         this.email = email;
@@ -50,7 +47,6 @@ public class Participant {
         this.preferredGame = preferredGame;
         this.skillLevel = skillLevel;
         this.preferredRole = preferredRole;
-        this.persona_rating = persona_rating;
 
         // calculate raw personality_score
         this.raw_personalityScore = calculatePersonalityScore();
@@ -125,6 +121,13 @@ public class Participant {
 
 
 
+
+
+    public void setSkill(int skillLevel) {
+        this.skillLevel = skillLevel;
+    }
+
+
     public double getNormalizedScore() {
         return this.normalizedScore;
     }
@@ -174,22 +177,23 @@ public class Participant {
                 "Personality Type: " + personalityType + " (Mix Constraint Input)\n" +
                 "---------------------------------";
     }
-     // to display details of each participant in a team
-    public String toDisplayString() {
-        return String.format("%-15s | %-5s | %-10s | %-10s | %-5d | %s",
-                this.name,
-                this.playerId,
-                this.preferredGame,
-                this.preferredRole,
-                this.skillLevel,
-                this.personalityType);
-    }
 
-
-    //=================thread purpose===========//
+    //============================thread purpose================//
     public Participant deepCopy() {
-        return new Participant(this.name, this.preferredGame, this.preferredRole, this.skillLevel, this.personalityType, this.compositeScore);
+        // Use the constructor that accepts all core attributes to create a new instance.
+        // Using the constructor for file uploading
+        return new Participant(
+                this.playerId,
+                this.name,
+                this.email,
+                this.preferredGame,
+                this.skillLevel,
+                this.preferredRole,
+                this.normalizedScore,
+                this.personalityType
+        );
     }
+
 
 }
 

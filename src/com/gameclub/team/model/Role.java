@@ -8,9 +8,6 @@ public enum Role {
     Supporter("Supporter - Jack-of-all-trades. Adapts roles, ensures smooth coordination."),
     Coordinator( "Coordinator - Communication lead. Keeps the team informed and organized in real time.");
 
-    public String getDescription() {
-        return description;
-    }
 
     private final String description;
 

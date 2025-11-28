@@ -39,10 +39,6 @@ public class TeamBuilder{
 
     private ConstraintChecker constraintChecker;
 
-    // Dependency Injection Constructor (Preferred for testing)
-    public TeamBuilder(ConstraintChecker constraintChecker) {
-        this.constraintChecker = constraintChecker;
-    }
 
     public TeamBuilder() { }
 
