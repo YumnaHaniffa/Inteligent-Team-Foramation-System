@@ -11,6 +11,7 @@ import javax.lang.model.type.IntersectionType;
 import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.spec.EdECPoint;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,8 +20,20 @@ import java.util.Scanner;
 
 public class SurveyController {
 
-     static Scanner scanner = new Scanner(System.in);
+     private final Scanner scanner;
      private static String file_path = "participants.txt";
+
+
+     // Default constructor for main application
+     public SurveyController() {
+         this(System.in); // delegates to the other constructor
+     }
+    //FOR TESTING PURPOSES
+
+    public SurveyController(InputStream in) {
+        this.scanner = new Scanner(in);
+    }
+
 
     //GET PARTICIPANT DATA
     public Participant getParticipantData(){
@@ -100,11 +113,11 @@ public class SurveyController {
         //personality ranking
 
         System.out.print("\nPersonality Traits : Rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree)\n");
-        int q1 = SurveyController.promptPersonalityRating("\nQ1. I enjoy taking the lead and guiding others during group activities.");
-        int q2 = SurveyController.promptPersonalityRating("Q2. I prefer analyzing situations and coming up with strategic solutions.");
-        int q3 = SurveyController.promptPersonalityRating("Q3. I work well with others and enjoy collaborative teamwork.");
-        int q4 = SurveyController.promptPersonalityRating("Q4. I am calm under pressure and can help maintain team morale.");
-        int q5 = SurveyController.promptPersonalityRating("Q5. I like making quick decisions and adapting in dynamic situations.");
+        int q1 = this.promptPersonalityRating("\nQ1. I enjoy taking the lead and guiding others during group activities.");
+        int q2 = this.promptPersonalityRating("Q2. I prefer analyzing situations and coming up with strategic solutions.");
+        int q3 = this.promptPersonalityRating("Q3. I work well with others and enjoy collaborative teamwork.");
+        int q4 = this.promptPersonalityRating("Q4. I am calm under pressure and can help maintain team morale.");
+        int q5 = this.promptPersonalityRating("Q5. I like making quick decisions and adapting in dynamic situations.");
 
         //For personality score calculation
         List<Integer> personalityRatings = Arrays.asList(q1,q2,q3,q4,q5);
@@ -115,7 +128,7 @@ public class SurveyController {
         String personalityType = classifier.classify(normalizedScore);
 
         //Skill Level
-        int skillLevel = SurveyController.promptForSelection("\n Select skill Level: How would you rate your skill?" ,1,10);
+        int skillLevel = this.promptForSelection("\n Select skill Level: How would you rate your skill?" ,1,10);
 
 
         //Select game  Interest
@@ -124,7 +137,7 @@ public class SurveyController {
         for(int i= 0;i< gamesOptions.length;i++){
             System.out.println((i+1) + ". " + gamesOptions[i]);
         }
-        int gameInterestIndex = SurveyController.promptForSelection("",1,gamesOptions.length);
+        int gameInterestIndex = this.promptForSelection("",1,gamesOptions.length);
         InterestGame selectedGame = gamesOptions[gameInterestIndex-1];
         String game_option = selectedGame.toString();
 
@@ -134,7 +147,7 @@ public class SurveyController {
         for(int i= 0;i< role_options.length;i++){
             System.out.println((i+1) + ". " + role_options[i]);
         }
-        int roleIndex = SurveyController.promptForSelection("",1,role_options.length);
+        int roleIndex = this.promptForSelection("",1,role_options.length);
         Role selectedRole = role_options[roleIndex-1];
 
         // in the file
@@ -172,7 +185,7 @@ public class SurveyController {
     }
 
 
-    public static int promptPersonalityRating(String question){
+    public int promptPersonalityRating(String question){
 
        while(true){
            System.out.println(question);
@@ -194,7 +207,7 @@ public class SurveyController {
 
     }
 
-    public static int promptForSelection(String message, int min, int max) {
+    public int promptForSelection(String message, int min, int max) {
         while(true){
             System.out.println(message);
             System.out.print("Enter selection ("+ min +" - "+ max +"):" );
