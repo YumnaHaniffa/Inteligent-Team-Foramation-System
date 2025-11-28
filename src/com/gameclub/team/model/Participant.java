@@ -2,6 +2,7 @@ package com.gameclub.team.model;
 
 import com.gameclub.team.service.PersonalityClassifier;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,16 +48,17 @@ public class Participant {
         this.preferredGame = preferredGame;
         this.skillLevel = skillLevel;
         this.preferredRole = preferredRole;
+        this.persona_rating = persona_rating;
 
         // calculate raw personality_score
         this.raw_personalityScore = calculatePersonalityScore();
 
+        this.normalizedScore = (double) this.raw_personalityScore / max_raw_personalityScore *100.0;
 
         //calculate personality type
         //assign personality using personality Classifier class
 
         PersonalityClassifier classifier = new PersonalityClassifier();
-        this.normalizedScore = (double) this.raw_personalityScore / max_raw_personalityScore *100.0;
         this.personalityType = classifier.classify(this.normalizedScore);
         //calculate composite score and normalize
         this.compositeScore = calculateCompositeScore();
@@ -71,10 +73,12 @@ public class Participant {
         this.preferredGame = preferredGame;
         this.skillLevel = skillLevel;
         this.preferredRole = preferredRole;
-        this.personalityType = personalityType;
         this.normalizedScore = normalizedScore;
-        this.raw_personalityScore = (int) Math.round(normalizedScore/100.0 * 25);
+        this.personalityType = personalityType;
+        this.raw_personalityScore = (int) Math.round(normalizedScore/100.0 * max_raw_personalityScore);
+        this.compositeScore = calculateCompositeScore();
     }
+
     //
     public Participant(String name, String preferredRole, String personalityType, int skillLevel, String preferredGame,double compositeScore) {
         this.name = name;
@@ -84,6 +88,7 @@ public class Participant {
         this.preferredGame = preferredGame;
         this.compositeScore = compositeScore;
     }
+    //Testing purpose
 
 
 
@@ -138,17 +143,19 @@ public class Participant {
 
     public int calculatePersonalityScore() {
         int sum = 0;
-        for (int rating : persona_rating) {
-            sum += rating;
+        if (persona_rating != null) {
+            for (int rating : persona_rating) {
+                sum += rating;
 
+            }
         }
         return sum;
 
     }
 
     public double calculateCompositeScore() {
-        double normalizedPersonalityScore = (double) this.raw_personalityScore / max_raw_personalityScore +max_raw_skillLevel *100;
-        return this.skillLevel + normalizedPersonalityScore;
+        double normalizedPersonalityScore = (double) this.raw_personalityScore / max_raw_personalityScore *100.0;
+        return this.skillLevel + Math.round(normalizedPersonalityScore * 100.0) / 100.0;
     }
 
     @Override

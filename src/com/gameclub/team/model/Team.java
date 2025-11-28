@@ -35,11 +35,14 @@ public class Team {
 
     //add participants
     public void addPlayers(Participant p) {
-        if (p != null) {
-            this.members.add(p);
-        } else {
+        if (p == null) {
             System.err.println("ERROR: Attempted to add a null participant to " + teamName);
+            return;
+        } if(p.getName() == null || p.getName().isEmpty()) {
+            System.err.println("ERROR: Attempted to add an invalid participant to " + teamName);
+            return;
         }
+        this.members.add(p);
 
     }
 
@@ -69,7 +72,7 @@ public class Team {
             return 0.0;
         }
         //Total Skill / Number of Members
-        return (double) getTotalSkill() / members.size();
+        return Math.round((double)getTotalSkill() / members.size());
     }
 
 
