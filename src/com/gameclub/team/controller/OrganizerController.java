@@ -70,7 +70,7 @@ public class OrganizerController {
             final String output_filePath = "team formation results.csv";
 
             //Auto save the teams formed
-            FileService fileService = new FileService(); /*2.5*/
+            FileService fileService = new FileService(output_filePath); /*2.5*/
             try{
                 System.out.println("Saving the formed teams to file.........");
                 //The result object contains the reference to the optimized tems

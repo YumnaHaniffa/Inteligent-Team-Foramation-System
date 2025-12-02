@@ -8,7 +8,7 @@ public class TeamTest {
         Team team = new Team("Team1");
 
         // Create sample participants
-        Participant p1 = new Participant("P001", "Humaira", "humaira@uni.edu",
+        Participant p1 = new Participant("P001", "Bani", "bani@uni.edu",
                 "FIFA", 5, "Supporter", 56.0, "Thinker");
         Participant p2 = new Participant("P002", "Ali", "ali@uni.edu",
                 "Valorant", 7, "Leader", 95.0, "Leader");

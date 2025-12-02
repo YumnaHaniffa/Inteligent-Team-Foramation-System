@@ -11,16 +11,24 @@ import java.util.*;
 import java.util.logging.Logger;
 
 //Exception Handling and Validating team formation
-public class ValidationService implements ValidationServiceInt {
+public class ValidationService{
+
+    private static ValidationService instance;
 
     //Validate participant details -> Id, Name and email
-    private String file_path;
+    private String filePath;
 
     public ValidationService(String file_path) {
-        this.file_path = file_path;
+        this.filePath = file_path;
     }
     public ValidationService() {
 
+    }
+    public static ValidationService getInstance(String filePath) {
+        if (instance == null) {
+            instance = new ValidationService(filePath);
+        }
+        return instance;
     }
 
     public boolean idExists(String filePath, String id) {
@@ -65,7 +73,7 @@ public class ValidationService implements ValidationServiceInt {
         }
         //check if the id already exists
         if (checkForExistence) {
-            if (idExists(file_path, inputId)) {
+            if (idExists(filePath, inputId)) {
                 throw new IllegalArgumentException("The participant id already exists");
             }
 

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static com.gameclub.team.service.FileService.calculateFileHash;
+
 
 public class Application {
 
@@ -88,6 +90,26 @@ public class Application {
                              System.out.println("File path cannot be empty. Please try again.");
                              break;
                          }
+
+                         // Step 1: Calculate hash
+                         try {
+                             String fileHash = calculateFileHash(fullPath);
+                             System.out.println("File hash: " + fileHash);
+
+                             // Step 2: Compare with expected baseline (stored somewhere safe)
+                             String expectedHash = "362c69e8ef9bed7f7c63e55ae23004cc1446d5cc81e70ec1cf3904cf34fbdf3f"; // baseline hash value
+                             if (!fileHash.equalsIgnoreCase(expectedHash)) {
+                                 System.out.println("WARNING: File integrity check failed. The file may have been altered.");
+                                 break;
+                             } else {
+                                 System.out.println("File integrity verified ");
+                             }
+                         } catch (Exception e) {
+                             System.out.println("Error computing file hash: " + e.getMessage());
+                             break;
+                         }
+
+
 
                          System.out.println("Loading participant data from file... (Using internal mock data for demo)");
 
