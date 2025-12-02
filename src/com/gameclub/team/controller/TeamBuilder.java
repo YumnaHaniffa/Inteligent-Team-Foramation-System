@@ -46,7 +46,9 @@ public class TeamBuilder{
         this.constraintChecker = constraintChecker;
     }
 
-
+    public ConstraintChecker getConstraintChecker() {
+        return constraintChecker;
+    }
 
     //2. The participants will be sorted based on the composite score
     public List<Participant> sortParticipants(List<Participant> listOfParticipants) {  /* 2.1 - seq*/
@@ -222,7 +224,7 @@ public class TeamBuilder{
 
         boolean improvementFound = true;
         int round = 1;
-        int maxRounds = 200;
+        int maxRounds = 100;
 
         // Continue looping as long as we find a beneficial swap
         while (improvementFound && round <= maxRounds) {
