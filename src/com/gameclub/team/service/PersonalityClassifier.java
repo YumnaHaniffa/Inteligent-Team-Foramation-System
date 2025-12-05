@@ -1,7 +1,4 @@
 package com.gameclub.team.service;
-
-import com.gameclub.team.model.Participant;
-
 public class PersonalityClassifier{
 
     public String classify(double normalizedScore) {

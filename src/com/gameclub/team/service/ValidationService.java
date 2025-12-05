@@ -1,21 +1,15 @@
 package com.gameclub.team.service;
-
-import com.gameclub.team.model.Participant;
-import com.gameclub.team.model.Team;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.logging.Logger;
 
-//Exception Handling and Validating team formation
+//Exception Handling and Validating participant data
 public class ValidationService{
 
+    //=============Singleton usage===========//
     private static ValidationService instance;
 
-    //Validate participant details -> Id, Name and email
     private String filePath;
 
     public ValidationService(String file_path) {
@@ -64,13 +58,13 @@ public class ValidationService{
         String id_pattern = "^[A-Z]\\d{3}$";
 
         if (inputId == null || inputId.isEmpty()) {
-            throw new IllegalArgumentException("The participant id cannot be empty "); //as the input length is not 4
+            throw new IllegalArgumentException("The participant id cannot be empty ");
         }
-        //check if id follows the "P001" pattern
+        //Check if id follows the "P001" pattern
         if (!inputId.matches(id_pattern)) {
             throw new IllegalArgumentException("Invalid ID format (must be 1 letter + 3 digits, e.g., P001)");
         }
-        //check if the id already exists
+        //Check if the id already exists
         if (checkForExistence) {
             if (idExists(filePath, inputId)) {
                 throw new IllegalArgumentException("The participant id already exists");
