@@ -1,8 +1,6 @@
 package com.gameclub.team.model;
 
 import com.gameclub.team.service.PersonalityClassifier;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,20 +12,20 @@ public class Participant {
     private String email;
 
     private String preferredGame;
-    private int skillLevel; //-> how does the survey data provides this
+    private int skillLevel;
     private String preferredRole;
 
-    //Foe each question the rating is taken
+    //For each question the rating is taken
     private List<Integer> persona_rating;
 
-    //derived attributes
+    //Derived attributes
     private int raw_personalityScore;
     private double normalizedScore;
     private String personalityType;
     private double compositeScore;
 
 
-    //constants for normalization of personalityScore and skill level
+    //Constants for normalization of personalityScore and skill level
     private static final int max_raw_personalityScore = 25;
 
 
@@ -80,18 +78,14 @@ public class Participant {
     }
 
     //
-    public Participant(String name, String preferredRole, String personalityType, int skillLevel, String preferredGame,double compositeScore) {
-        this.name = name;
-        this.preferredRole = preferredRole;
-        this.personalityType = personalityType;
-        this.skillLevel = skillLevel;
-        this.preferredGame = preferredGame;
-        this.compositeScore = compositeScore;
-    }
-    //Testing purpose
-
-
-
+//    public Participant(String name, String preferredRole, String personalityType, int skillLevel, String preferredGame,double compositeScore) {
+//        this.name = name;
+//        this.preferredRole = preferredRole;
+//        this.personalityType = personalityType;
+//        this.skillLevel = skillLevel;
+//        this.preferredGame = preferredGame;
+//        this.compositeScore = compositeScore;
+//    }
 
     public String getName() {
         return name;
@@ -185,10 +179,8 @@ public class Participant {
                 "---------------------------------";
     }
 
-    //============================thread purpose================//
+    //=====================Thread purpose================//
     public Participant deepCopy() {
-        // Use the constructor that accepts all core attributes to create a new instance.
-        // Using the constructor for file uploading
         return new Participant(
                 this.playerId,
                 this.name,

@@ -1,5 +1,6 @@
 package com.gameclub.team.model;
 
+//Used instead of storing lists , to maintain usability of options and format
 public enum InterestGame {
     Chess,
     Valorant,
