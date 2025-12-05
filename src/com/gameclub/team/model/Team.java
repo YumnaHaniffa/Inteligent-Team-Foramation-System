@@ -14,10 +14,9 @@ public class Team {
 
     //Default initialization
     public Team() {
-        this.members = new ArrayList<>(); // what creating a team object a list will be created to add the members
+        this.members = new ArrayList<>(); // Creating a team object a list will be created to add the members
     }
-
-    //with name
+    //Represent participant with only name
     public Team(String name) {
         this.teamName = name;
         this.members = new ArrayList<>();
@@ -27,19 +26,18 @@ public class Team {
     public String getTeamName() {
         return teamName;
     }
-
     public List<Participant> getMembers() {
         return members;
     }
 
 
-    //add participants
+    //Add participants
     public void addPlayers(Participant p) {
         if (p == null) {
-            System.err.println("ERROR: Attempted to add a null participant to " + teamName);
+            System.err.println("Error: Attempted to add a null participant to " + teamName);
             return;
         } if(p.getName() == null || p.getName().isEmpty()) {
-            System.err.println("ERROR: Attempted to add an invalid participant to " + teamName);
+            System.err.println("Error: Attempted to add an invalid participant to " + teamName);
             return;
         }
         this.members.add(p);
@@ -47,7 +45,7 @@ public class Team {
     }
 
 
-    // (Game Variety) Helper ---
+    // (Game Variety) Helper
     public int getGameCount(String game) {
         if (game == null) return 0;
         return (int) members.stream()
@@ -77,7 +75,7 @@ public class Team {
 
 
 
-    //===================threading ===========================//
+    //===================threading ========================//
     public Team deepCopy() {
         Team newTeam = new Team(this.teamName);
         for (Participant member : this.members) {
@@ -88,7 +86,6 @@ public class Team {
     }
 
     //Finds a member in this team by name. Used by the SwapEvaluationTask
-    //locate the player within the temporary copy of the team
 
     public Participant getMemberByName(String name) {
         return members.stream()
