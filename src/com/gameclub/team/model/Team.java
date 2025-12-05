@@ -73,8 +73,6 @@ public class Team {
         return Math.round((double)getTotalSkill() / members.size());
     }
 
-
-
     //===================threading ========================//
     public Team deepCopy() {
         Team newTeam = new Team(this.teamName);
