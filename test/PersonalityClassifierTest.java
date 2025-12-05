@@ -9,8 +9,7 @@ public class PersonalityClassifierTest {
         runTestP(classifier, 90, "Leader");
         runTestP(classifier, 70, "Balanced");
         runTestP(classifier, 50, "Thinker");
-        runTestP(classifier, 30, "Invalid");   // Below range
-       ;  // Above range
+        runTestP(classifier, 30, "Invalid");
 
         // Boundary values
         runTestP(classifier, 69, "Thinker");
