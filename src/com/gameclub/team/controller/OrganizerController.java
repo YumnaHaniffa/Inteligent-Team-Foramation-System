@@ -3,7 +3,6 @@ import com.gameclub.team.model.Participant;
 import com.gameclub.team.service.ConstraintChecker;
 import com.gameclub.team.service.FileService;
 import com.gameclub.team.service.TeamFormationResult;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +42,7 @@ public class OrganizerController {
 
             //Form Teams
             TeamFormationResult result = teamBuilder.formTeams(sortedParticipants, teamSize, game_cap); /* 2.3 - seq*/
-            System.out.println("LOG: Initial Teams Formed (Max 1 Leader Constraint applied).");
+            System.out.println("Initial Teams Formed (Max 1 Leader Constraint applied).");
 
 
             //Set up ConstraintChecker for Optimization
@@ -58,7 +57,7 @@ public class OrganizerController {
 
             //Concurrent applied for optimization
             teamBuilder.optimizeTeamsConcurrent(result.getTeams()); /*2.4 seq*/
-            System.out.println("LOG: Optimization phase executed successfully using concurrency.");
+            System.out.println("Optimization phase executed successfully using concurrency.");
 
             final String output_filePath = "team formation results.csv";
             FileService fileService = new FileService(output_filePath); /*2.5*/
