@@ -21,7 +21,7 @@ It collects participant data through a structured survey, classifies personality
 
 Built from scratch using **pure OOP principles**, UML-driven design, file handling, exception management, and multi-threading.
 
---
+---
 ## ✨ Key Features
 
 - **Interactive Survey System** – Participants fill in skills, preferred roles & 5 personality questions
